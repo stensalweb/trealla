@@ -26,7 +26,7 @@ typedef uint32_t idx_t;
 
 #define MAX_VAR_POOL_SIZE 1000
 #define MAX_ARITY UCHAR_MAX
-#define MAX_SMALL_STRING_SIZE (sizeof(int_t)*2)
+#define MAX_SMALL_STRING (sizeof(int_t)*2)
 #define MAX_USER_OPS 100
 #define MAX_QUEUES 16
 #define MAX_STREAMS 64
@@ -121,20 +121,20 @@ struct cell_ {
 				size_t nbytes;              // slice size
 				uint16_t precedence;		// ops parsing
 				uint8_t slot_nbr;			// vars
-				int_t val_den;
+				int_t val_den;				// rational denominator
 			};
 
 			union {
-				int_t val_int;
-				int_t val_num;
-				double val_real;
-				unsigned val_offset;
-				char *val_str;
-				cell *val_cell;
+				int_t val_int;				// integer
+				int_t val_num;				// rational numerator
+				double val_real;			// float
+				unsigned val_offset;		// offset to string in pool
+				char *val_str;				// C-string
+				cell *val_cell;				// indirect
 			};
 		};
 
-		char val_chars[MAX_SMALL_STRING_SIZE];
+		char val_chars[MAX_SMALL_STRING];	// small string copy
 	};
 };
 

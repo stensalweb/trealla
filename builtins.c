@@ -396,7 +396,7 @@ static cell make_string(query *q, const char *s)
 {
 	cell tmp;
 
-	if (strlen(s) < MAX_SMALL_STRING_SIZE) {
+	if (strlen(s) < MAX_SMALL_STRING) {
 		make_small(&tmp, s);
 	} else
 		tmp = *alloc_string(q, (char*)s, 0);
@@ -408,7 +408,7 @@ static cell make_stringn(query *q, const char *s, size_t n)
 {
 	cell tmp;
 
-	if (n < MAX_SMALL_STRING_SIZE) {
+	if (n < MAX_SMALL_STRING) {
 		make_smalln(&tmp, s, n);
 	} else
 		tmp = *alloc_string(q, strndup(s, n), 1);
@@ -420,7 +420,7 @@ static cell take_string(query *q, char *s)
 {
 	cell tmp;
 
-	if (strlen(s) < MAX_SMALL_STRING_SIZE) {
+	if (strlen(s) < MAX_SMALL_STRING) {
 		make_small(&tmp, s);
 		free(s);
 	} else
@@ -433,7 +433,7 @@ static cell take_blob(query *q, const char *s, size_t n)
 {
 	cell tmp;
 
-	if (n < MAX_SMALL_STRING_SIZE) {
+	if (n < MAX_SMALL_STRING) {
 		make_smalln(&tmp, s, n);
 	} else
 		tmp = *alloc_string(q, strndup(s, n), 1);
@@ -850,7 +850,7 @@ static int fn_iso_atom_chars_2(query *q)
 	memcpy(tmpbuf, src, nbytes);
 	tmpbuf[nbytes] = '\0';
 
-	if (nbytes < MAX_SMALL_STRING_SIZE) {
+	if (nbytes < MAX_SMALL_STRING) {
 		tmp.flags |= FLAG_SMALL_STRING;
 		strcpy(tmp.val_chars, tmpbuf);
 	} else
@@ -1009,7 +1009,7 @@ static int fn_iso_number_chars_2(query *q)
 	tmp.flags = 0;
 	int nbytes = strlen(src);
 
-	if (nbytes < MAX_SMALL_STRING_SIZE) {
+	if (nbytes < MAX_SMALL_STRING) {
 		tmp.flags |= FLAG_SMALL_STRING;
 		strcpy(tmp.val_chars, src);
 	} else
