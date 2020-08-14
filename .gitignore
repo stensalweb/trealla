@@ -1,0 +1,12 @@
+samples/test1.pro
+core
+tpl
+*.a
+*.o
+*.exe
+*.lib
+*.obj
+*.log
+*.out
+*.kvs
+*.dbs
