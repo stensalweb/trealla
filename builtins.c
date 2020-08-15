@@ -7210,7 +7210,7 @@ static void compare_and_zero(uint64_t v1, uint64_t *v2, uint64_t *v)
 
 #define MASK_FINAL 0x0000FFFFFFFFFFFF // Final 48 bits
 
-static uuid *uuid_gen1(uuid *u)
+static uuid *uuid_gen(uuid *u)
 {
 	static uint64_t s_last = 0, s_cnt = 0;
 	static uint64_t g_seed = 0;
@@ -7241,7 +7241,7 @@ static int fn_uuid_1(query *q)
 {
 	GET_FIRST_ARG(p1,var);
     uuid u;
-    uuid_gen1(&u);
+    uuid_gen(&u);
     char tmpbuf[128];
     uuid_to_string(&u, tmpbuf, sizeof(tmpbuf));
 	cell *tmp = alloc_string(q, tmpbuf, 0);

@@ -125,7 +125,7 @@ SWI-Prolog
 	getenv/2                # getenv(+name,-value)
 	setenv/2                # setenv(+name,+value)
 	unsetenv/1              # unsetenv(+name)
-	uuid/1                  # uuid(-atom)
+	uuid/1                  # uuid(-atom) generates non-standard UUID
 
 	delete_file/1
 	exists_file/1
