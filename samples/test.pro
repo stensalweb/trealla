@@ -153,6 +153,8 @@ test17 :-
 	findall(X,f(b,X),Tail,_NewTail),
 	write(Bag), nl.
 
+test18 :- assertz(f(123),_R), assertz(456), listing(f/1).
+
 task50(T) :-
 	between(1,inf,_),
 		format('Task ... ~d',[T]), nl,
