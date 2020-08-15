@@ -7213,7 +7213,7 @@ static void compare_and_zero(uint64_t v1, uint64_t *v2, uint64_t *v)
 	}
 }
 
-static uuid *uuid_gen(uuid *u)
+static uuid *uuid_gen1(uuid *u)
 {
 	static uint64_t s_last = 0, s_cnt = 0;
 
@@ -7231,7 +7231,8 @@ static uuid *uuid_gen(uuid *u)
 
 static char *uuid_to_string(const uuid *u, char *buf, size_t buflen)
 {
-	snprintf(buf, buflen, "%016llX:%04llX:%012llX", (unsigned long long)u->u1,
+	snprintf(buf, buflen, "%016llX-%04llX-%012llX",
+		(unsigned long long)u->u1,
 		(unsigned long long)(u->u2 >> 48),
 		(unsigned long long)(u->u2 & MASK_FINAL));
 
@@ -7242,8 +7243,8 @@ static int fn_uuid_1(query *q)
 {
 	GET_FIRST_ARG(p1,var);
     uuid u;
-    uuid_gen(&u);
-    char tmpbuf[64];
+    uuid_gen1(&u);
+    char tmpbuf[128];
     uuid_to_string(&u, tmpbuf, sizeof(tmpbuf));
 	cell *tmp = alloc_string(q, tmpbuf, 0);
 	set_var(q, p1, p1_ctx, tmp, q->st.curr_frame);
@@ -7901,7 +7902,7 @@ static const struct builtins g_other_funcs[] =
 	{"var_number", 2, fn_var_number_2, "+term,?integer"},
 	{"char_type", 2, fn_char_type_2, "+char,+term"},
 	{"code_type", 2, fn_char_type_2, "+code,+term"},
-	{"uuid", 1, fn_uuid_1},
+	{"uuid", 1, fn_uuid_1, "-atom"},
 
 	{"getenv", 2, fn_getenv_2},
 	{"setenv", 2, fn_setenv_2},
