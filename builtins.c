@@ -1912,7 +1912,7 @@ static int fn_iso_put_char_1(query *q)
 	int ch = get_char_utf8(&src);
 	char tmpbuf[20];
 	put_char_utf8(tmpbuf, ch);
-	fwrite(tmpbuf, 1, strlen(tmpbuf), str->fp);
+	stream_write(tmpbuf, strlen(tmpbuf), str);
 	return !ferror(str->fp);
 }
 
@@ -1926,7 +1926,7 @@ static int fn_iso_put_char_2(query *q)
 	int ch = get_char_utf8(&src);
 	char tmpbuf[20];
 	put_char_utf8(tmpbuf, ch);
-	fwrite(tmpbuf, 1, strlen(tmpbuf), str->fp);
+	stream_write(tmpbuf, strlen(tmpbuf), str);
 	return !ferror(str->fp);
 }
 
@@ -1938,7 +1938,7 @@ static int fn_iso_put_code_1(query *q)
 	int ch = (int)p1->val_int;
 	char tmpbuf[20];
 	put_char_utf8(tmpbuf, ch);
-	fwrite(tmpbuf, 1, strlen(tmpbuf), str->fp);
+	stream_write(tmpbuf, strlen(tmpbuf), str);
 	return !ferror(str->fp);
 }
 
@@ -1951,7 +1951,7 @@ static int fn_iso_put_code_2(query *q)
 	int ch = (int)p1->val_int;
 	char tmpbuf[20];
 	put_char_utf8(tmpbuf, ch);
-	fwrite(tmpbuf, 1, strlen(tmpbuf), str->fp);
+	stream_write(tmpbuf, strlen(tmpbuf), str);
 	return !ferror(str->fp);
 }
 
@@ -1964,7 +1964,7 @@ static int fn_iso_put_byte_1(query *q)
 	int ch = *src;
 	char tmpbuf[20];
 	put_char_utf8(tmpbuf, ch);
-	fwrite(tmpbuf, 1, strlen(tmpbuf), str->fp);
+	stream_write(tmpbuf, strlen(tmpbuf), str);
 	return !ferror(str->fp);
 }
 
@@ -1978,7 +1978,7 @@ static int fn_iso_put_byte_2(query *q)
 	int ch = *src;
 	char tmpbuf[20];
 	put_char_utf8(tmpbuf, ch);
-	fwrite(tmpbuf, 1, strlen(tmpbuf), str->fp);
+	stream_write(tmpbuf, strlen(tmpbuf), str);
 	return !ferror(str->fp);
 }
 
@@ -5232,7 +5232,7 @@ static int fn_savefile_2(query *q)
 	GET_NEXT_ARG(p2,string);
 	const char *filename = GET_STR(p1);
 	FILE *fp = fopen(filename, "wb");
-	fwrite(GET_STR(p2), LEN_STR(p2), 1, fp);
+	fwrite(GET_STR(p2), 1, LEN_STR(p2), fp);
 	fclose(fp);
 	return 1;
 }
@@ -6400,7 +6400,7 @@ static int do_format(query *q, cell *str, idx_t str_ctx, cell* p1, cell* p2, idx
 	if (str == NULL) {
 		int n = get_named_stream(q, "user_output");
 		stream *str = &g_streams[n];
-		fwrite(tmpbuf, 1, len, str->fp);
+		stream_write(tmpbuf, len, str);
 		fflush(str->fp);
 	} else if (is_structure(str) && ((strcmp(GET_STR(str),"atom") && strcmp(GET_STR(str),"string")) || (str->arity > 1) || !is_var(str+1))) {
 		free(tmpbuf);
