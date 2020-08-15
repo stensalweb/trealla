@@ -4015,7 +4015,7 @@ static int fn_iso_asserta_1(query *q)
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	return asserta_to_db(q->m, p->t, 0);
+	return asserta_to_db(q->m, p->t, 0) ? 1 : 0;
 }
 
 static int fn_iso_assertz_1(query *q)
@@ -4033,7 +4033,7 @@ static int fn_iso_assertz_1(query *q)
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	return assertz_to_db(q->m, p->t, 0);
+	return assertz_to_db(q->m, p->t, 0) ? 1 : 0;
 }
 
 int call_me(query *q, cell *p1, idx_t p1_ctx)
@@ -4982,7 +4982,16 @@ static int fn_asserta_2(query *q)
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	return asserta_to_db(q->m, p->t, 0);
+
+	clause *r = asserta_to_db(q->m, p->t, 0);
+
+	if (!r)
+		return 0;
+
+	cell tmp2;
+	make_int(&tmp2, (uint_t)r);
+	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
+	return 1;
 }
 
 static int fn_assertz_2(query *q)
@@ -5001,7 +5010,16 @@ static int fn_assertz_2(query *q)
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	return assertz_to_db(q->m, p->t, 0);
+
+	clause *r = assertz_to_db(q->m, p->t, 0);
+
+	if (!r)
+		return 0;
+
+	cell tmp2;
+	make_int(&tmp2, (uint_t)r);
+	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
+	return 1;
 }
 
 static void save_db(FILE *fp, query *q, int dq)

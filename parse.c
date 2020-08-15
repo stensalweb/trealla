@@ -353,13 +353,13 @@ static int compkey(const void *ptr1, const void *ptr2)
 	return 0;
 }
 
-int asserta_to_db(module *m, term *t, int consulting)
+clause *asserta_to_db(module *m, term *t, int consulting)
 {
 	cell *c = get_head(m, t->cells);
 
 	if (!c) {
 		fprintf(stderr, "Error: not a fact or clause\n");
-		return 0;
+		return NULL;
 	}
 
 	rule *h = find_match(m, c);
@@ -367,7 +367,7 @@ int asserta_to_db(module *m, term *t, int consulting)
 	if (h && !consulting) {
 		if (!(h->flags&FLAG_RULE_DYNAMIC)) {
 			fprintf(stderr, "Error: not a fact or clause\n");
-			return 0;
+			return NULL;
 		}
 	}
 
@@ -400,16 +400,16 @@ int asserta_to_db(module *m, term *t, int consulting)
 	}
 
 	t->cidx = 0;
-	return 1;
+	return r;
 }
 
-int assertz_to_db(module *m, term *t, int consulting)
+clause *assertz_to_db(module *m, term *t, int consulting)
 {
 	cell *c = get_head(m, t->cells);
 
 	if (!c) {
 		fprintf(stderr, "Error: no fact or clause head\n");
-		return 0;
+		return NULL;
 	}
 
 	rule *h = find_match(m, c);
@@ -417,7 +417,7 @@ int assertz_to_db(module *m, term *t, int consulting)
 	if (h && !consulting) {
 		if (!(h->flags&FLAG_RULE_DYNAMIC)) {
 			fprintf(stderr, "Error: not a fact or clause\n");
-			return 0;
+			return NULL;
 		}
 	}
 
@@ -453,7 +453,7 @@ int assertz_to_db(module *m, term *t, int consulting)
 	}
 
 	t->cidx = 0;
-	return 1;
+	return r;
 }
 
 void retract_from_db(module *m, clause *r)
