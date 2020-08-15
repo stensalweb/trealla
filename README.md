@@ -120,12 +120,12 @@ SWI-Prolog
 	rdiv/2
 	char_type/2
 	code_type/2
-	string_upper/2          # string_upper(+atom,?atom)
-	string_lower/2          # string_lower(+atom,?atom)
-	getenv/2                # getenv(+name,-value)
-	setenv/2                # setenv(+name,+value)
-	unsetenv/1              # unsetenv(+name)
-	uuid/1                  # uuid(-atom) generates non-standard UUID
+	string_upper/2
+	string_lower/2
+	getenv/2
+	setenv/2
+	unsetenv/1
+	uuid/1                  # generates non-standard UUID
 
 	delete_file/1
 	exists_file/1
