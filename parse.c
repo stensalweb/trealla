@@ -481,6 +481,32 @@ int abolish_from_db(module *m, cell *c)
 	return 1;
 }
 
+clause *find_in_db(module *m, void *ref)
+{
+	for (rule *h = m->head; h; h = h->next) {
+		for (clause *r = h->head ; r; r = r->next) {
+			if (r == ref)
+				return r;
+		}
+	}
+
+	return NULL;
+}
+
+int erase_from_db(module *m, void *ref)
+{
+	for (rule *h = m->head; h; h = h->next) {
+		for (clause *r = h->head ; r; r = r->next) {
+			if (r == ref) {
+				r->t.deleted = 1;
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 static void set_dynamic_in_db(module *m, const char *name, idx_t arity)
 {
 	cell tmp;
@@ -2450,15 +2476,14 @@ module *create_module(const char *name)
 
 	// SWI
 
-	make_rule(m, "current_key(K) :- clause('$record_key'(K,_V),_B).");
-	make_rule(m, "recorda(K,V) :- nonvar(K), asserta('$record_key'(K,V)).");
-	make_rule(m, "recordz(K,V) :- nonvar(K), assertz('$record_key'(K,V)).");
-	make_rule(m, "recorded(K,V) :- clause('$record_key'(K,V),_B).");
+	make_rule(m, "current_key(K) :- var(K), clause('$record_key'(K,_),_).");
+	make_rule(m, "recorda(K,V) :- nonvar(K), nonvar(V), asserta('$record_key'(K,V)).");
+	make_rule(m, "recordz(K,V) :- nonvar(K), nonvar(V), assertz('$record_key'(K,V)).");
+	make_rule(m, "recorded(K,V) :- nonvar(K), clause('$record_key'(K,V),_).");
 
-	//make_rule(m, "instance(R,V) :- nonvar(R), clause('$record_key'(_K,V),_B,R).");
-	//make_rule(m, "recorda(K,V,R) :- nonvar(K), asserta('$record_key'(K,V),R).");
-	//make_rule(m, "recordz(K,V,R) :- nonvar(K), assertz('$record_key'(K,V),R).");
-	//make_rule(m, "recorded(K,V,R) :- clause('$record_key'(K,V),_B,R).");
+	make_rule(m, "recorda(K,V,R) :- nonvar(K), nonvar(V), asserta('$record_key'(K,V),R).");
+	make_rule(m, "recordz(K,V,R) :- nonvar(K), nonvar(V), assertz('$record_key'(K,V),R).");
+	make_rule(m, "recorded(K,V,R) :- nonvar(K), clause('$record_key'(K,V),_,R).");
 
 	make_rule(m, "succ(X,Y) :- integer(X), Y is X + 1, X >= 0, !.");
 	make_rule(m, "succ(X,Y) :- integer(Y), X is Y - 1, X >= 0.");

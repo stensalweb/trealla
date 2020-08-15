@@ -137,9 +137,14 @@ SWI-Prolog
 	chdir/1
 
 	current_key/1
-	recorda/2
-	recordz/2
-	recorded/2
+	recorda/2-3
+	recordz/2-3
+	recorded/2-3
+	instance/2
+	asserta/2
+	assertz/2
+	clause/3
+	erase/1
 
 	http_get/3
 	http_post/4

@@ -4928,6 +4928,82 @@ static int fn_iso_setof_3(query *q)
 	return unify(q, p3, p3_ctx, l, q->st.curr_frame);
 }
 
+static int fn_instance_2(query *q)
+{
+	GET_FIRST_ARG(p1,integer);
+	GET_NEXT_ARG(p2,any);
+	clause *r = find_in_db(q->m, (void*)p1->val_int);
+	if (!r) return 0;
+	return unify(q, p2, p2_ctx, r->t.cells, q->st.curr_frame);
+}
+
+static int fn_erase_1(query *q)
+{
+	GET_FIRST_ARG(p1,integer);
+	erase_from_db(q->m, (void*)p1->val_int);
+	return 1;
+}
+
+static int fn_clause_3(query *q)
+{
+	GET_FIRST_ARG(p1,any);
+	GET_NEXT_ARG(p2,any);
+	GET_NEXT_ARG(p3,var);
+
+	if (!do_match(q, p1))
+		return 0;
+
+	cell tmp;
+	make_int(&tmp, (uint_t)q->st.curr_clause);
+	set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
+	term *t = &q->st.curr_clause->t;
+	cell *body = get_body(q->m, t->cells);
+
+	if (body)
+		return unify(q, p2, p2_ctx, body, q->st.curr_frame);
+
+	make_literal(&tmp, g_true_s);
+	return unify(q, p2, p2_ctx, &tmp, q->st.curr_frame);
+}
+
+static int fn_asserta_2(query *q)
+{
+	GET_FIRST_ARG(p1,any);
+	GET_NEXT_ARG(p2,var);
+	cell *tmp = deep_clone_term_on_tmp(q, p1, p1_ctx);
+	idx_t nbr_cells = tmp->nbr_cells;
+	parser *p = q->m->p;
+
+	if (nbr_cells > p->t->nbr_cells) {
+		p->t = realloc(p->t, sizeof(term)+(sizeof(cell)*(nbr_cells+1)));
+		p->t->nbr_cells = nbr_cells;
+	}
+
+	copy_cells(p->t->cells, tmp, nbr_cells);
+	p->t->cidx = nbr_cells;
+	parser_assign_vars(p);
+	return asserta_to_db(q->m, p->t, 0);
+}
+
+static int fn_assertz_2(query *q)
+{
+	GET_FIRST_ARG(p1,any);
+	GET_NEXT_ARG(p2,var);
+	cell *tmp = deep_clone_term_on_tmp(q, p1, p1_ctx);
+	idx_t nbr_cells = tmp->nbr_cells;
+	parser *p = q->m->p;
+
+	if (nbr_cells > p->t->nbr_cells) {
+		p->t = realloc(p->t, sizeof(term)+(sizeof(cell)*(nbr_cells+1)));
+		p->t->nbr_cells = nbr_cells;
+	}
+
+	copy_cells(p->t->cells, tmp, nbr_cells);
+	p->t->cidx = nbr_cells;
+	parser_assign_vars(p);
+	return assertz_to_db(q->m, p->t, 0);
+}
+
 static void save_db(FILE *fp, query *q, int dq)
 {
 	for (rule *h = q->m->head; h; h = h->next) {
@@ -7832,8 +7908,6 @@ static const struct builtins g_other_funcs[] =
 	{"is_list", 1, fn_is_list_1, "+term"},
 	{"list", 1, fn_is_list_1, "+term"},
 	{"forall", 2, fn_forall_2, "+term,+term"},
-	{"sys_queue", 1, fn_sys_queue_1, "+term"},
-	{"sys_list", 1, fn_sys_list_1, "-list"},
 	{"term_hash", 2, fn_term_hash_2, "+term,?integer"},
 	{"rename_file", 2, fn_rename_file_2, "+atom,+atom"},
 	{"delete_file", 1, fn_delete_file_1, "+atom"},
@@ -7865,7 +7939,13 @@ static const struct builtins g_other_funcs[] =
 	{"char_type", 2, fn_char_type_2, "+char,+term"},
 	{"code_type", 2, fn_char_type_2, "+code,+term"},
 	{"uuid", 1, fn_uuid_1, "-atom"},
-
+	{"asserta", 2, fn_asserta_2, "+term,-ref"},
+	{"assertz", 2, fn_assertz_2, "+term,-ref"},
+	{"instance", 2, fn_instance_2, "+ref,?term"},
+	{"erase", 1, fn_erase_1, "+ref"},
+	{"clause", 3, fn_clause_3, "?head,?body,-ref"},
+	{"sys_queue", 1, fn_sys_queue_1, "+term"},
+	{"sys_list", 1, fn_sys_list_1, "-list"},
 	{"getenv", 2, fn_getenv_2},
 	{"setenv", 2, fn_setenv_2},
 	{"unsetenv", 1, fn_unsetenv_1},

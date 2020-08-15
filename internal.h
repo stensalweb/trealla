@@ -316,6 +316,8 @@ int abolish_from_db(module *m, cell *c);
 int asserta_to_db(module *m, term *t, int consulting);
 int assertz_to_db(module *m, term *t, int consulting);
 void retract_from_db(module *m, clause *r);
+int erase_from_db(module *m, void *ref);
+clause *find_in_db(module *m, void *ref);
 int get_op(module *m, const char *name, unsigned *val_type, int *userop, int hint_prefix);
 void write_canonical(query *q, FILE *fp, cell *c, int running, int dq, int depth);
 size_t write_canonical_to_buf(query *q, char *dst, size_t dstlen, cell *c, int running, int dq, int depth);
