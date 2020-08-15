@@ -2,15 +2,15 @@
 
 http_response(S,Code) :-
 	getline(S,Line),
-	split(Line,' ',_Ver,Rest),
-	split(Rest,' ',Code2,_Rest2),
+	split(Line,' ',[_Ver,Rest]),
+	split(Rest,' ',[Code2,_Rest2]),
 	atom_number(Code2,Code).
 
 http_headers(S,Pair) :-
 	repeat,
 		(at_end_of_stream(S) -> (!, fail) ; true),
 		getline(S,Line),
-		split(Line,':',K,V),
+		split(Line,':',[K,V]),
 		(K == '' -> (!, fail) ; true),
 		string_lower(K,K2),
 		string_lower(V,V2),
