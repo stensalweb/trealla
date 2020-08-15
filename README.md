@@ -167,7 +167,6 @@ Others
 	bwrite/2                # bwrite(+stream,+blob)
 	replace/4               # replace(+atom,+old,+new,-atom)
 	split/3                 # split(+atom,+sep,-list)
-	split/4                 # split(+atom,+sep,-lhs,-rhs)
 	sys_queue/1             # push (append) term to queue
 	sys_list/1              # pop list of all queued items
 	base64/2                # base64(?decoded,?encoded)

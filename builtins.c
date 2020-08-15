@@ -5141,41 +5141,6 @@ static int fn_forall_2(query *q)
 	return 1;
 }
 
-static int fn_split_4(query *q)
-{
-	GET_FIRST_ARG(p1,atom);
-	GET_NEXT_ARG(p2,atom);
-	GET_NEXT_ARG(p3,var);
-	GET_NEXT_ARG(p4,var);
-
-	if (is_nil(p1)) {
-		throw_error(q, p1, "type_error", "atom");
-		return 0;
-	}
-
-	const char *start = GET_STR(p1), *ptr;
-	int ch = peek_char_utf8(GET_STR(p2));
-
-	if ((ptr = strchr_utf8(start, ch)) != NULL) {
-		cell tmp = make_stringn(q, start, ptr-start);
-		set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
-		ptr = ptr+1;
-
-		while (isspace(*ptr))
-			ptr++;
-
-		tmp = make_string(q, ptr);
-		set_var(q, p4, p4_ctx, &tmp, q->st.curr_frame);
-		return 1;
-	}
-
-	set_var(q, p3, p3_ctx, p1, p1_ctx);
-	cell tmp;
-	make_literal(&tmp, g_empty_s);
-	set_var(q, p4, p4_ctx, &tmp, q->st.curr_frame);
-	return 1;
-}
-
 static int fn_split_3(query *q)
 {
 	GET_FIRST_ARG(p1,atom);
@@ -7863,7 +7828,6 @@ static const struct builtins g_other_funcs[] =
 	{"loadfile", 2, fn_loadfile_2, "+atom,-string"},
 	{"savefile", 2, fn_savefile_2, "+atom,+string"},
 	{"split", 3, fn_split_3, "+atom,+atom,-list"},
-	{"split", 4, fn_split_4, "+atom,+atom,-atom,-atom"},
 	{"msort", 2, fn_msort_2, "+list,-list"},
 	{"is_list", 1, fn_is_list_1, "+term"},
 	{"list", 1, fn_is_list_1, "+term"},
