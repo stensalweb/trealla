@@ -5239,7 +5239,7 @@ static int fn_split_3(query *q)
 {
 	GET_FIRST_ARG(p1,atom);
 	GET_NEXT_ARG(p2,atom);
-	GET_NEXT_ARG(p3,var);
+	GET_NEXT_ARG(p3,any);
 
 	if (is_nil(p1)) {
 		throw_error(q, p1, "type_error", "atom");
@@ -5254,8 +5254,7 @@ static int fn_split_3(query *q)
 	if (!*start) {
 		cell tmp;
 		make_literal(&tmp, g_nil_s);
-		set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
-		return 1;
+		return unify(q, p3, p3_ctx, &tmp, q->st.curr_frame);
 	}
 
 	while ((ptr = strchr_utf8(start, ch)) != NULL) {
@@ -5281,16 +5280,15 @@ static int fn_split_3(query *q)
 	}
 
 	l = end_list(q, l);
-	set_var(q, p3, p3_ctx, l, q->st.curr_frame);
-	return 1;
+	return unify(q, p3, p3_ctx, l, q->st.curr_frame);
 }
 
 static int fn_split_4(query *q)
 {
 	GET_FIRST_ARG(p1,atom);
 	GET_NEXT_ARG(p2,atom);
-	GET_NEXT_ARG(p3,var);
-	GET_NEXT_ARG(p4,var);
+	GET_NEXT_ARG(p3,any);
+	GET_NEXT_ARG(p4,any);
 
 	if (is_nil(p1)) {
 		throw_error(q, p1, "type_error", "atom");
@@ -5302,22 +5300,25 @@ static int fn_split_4(query *q)
 
 	if ((ptr = strchr_utf8(start, ch)) != NULL) {
 		cell tmp = make_stringn(q, start, ptr-start);
-		set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
+
+		if (!unify(q, p3, p3_ctx, &tmp, q->st.curr_frame))
+			return 0;
+
 		ptr = ptr+1;
 
 		while (isspace(*ptr))
 			ptr++;
 
 		tmp = make_string(q, ptr);
-		set_var(q, p4, p4_ctx, &tmp, q->st.curr_frame);
-		return 1;
+		return unify(q, p4, p4_ctx, &tmp, q->st.curr_frame);
 	}
 
-	set_var(q, p3, p3_ctx, p1, p1_ctx);
+	if (!unify(q, p3, p3_ctx, p1, p1_ctx))
+		return 0;
+
 	cell tmp;
 	make_literal(&tmp, g_empty_s);
-	set_var(q, p4, p4_ctx, &tmp, q->st.curr_frame);
-	return 1;
+	return unify(q, p4, p4_ctx, &tmp, q->st.curr_frame);
 }
 
 static int fn_savefile_2(query *q)
