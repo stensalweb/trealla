@@ -96,11 +96,6 @@ int net_connect(const char *hostname, unsigned port, int udp, int nodelay, int n
 	flag = nodelay;
 	setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag));
 
-#ifdef TCP_QUICKACK
-	flag = 1;
-	setsockopt(fd, IPPROTO_TCP, TCP_QUICKACK, (char*)&flag, sizeof(flag));
-#endif
-
 	if (nonblock) {
 		unsigned long flag = 1;
 		ioctl(fd, FIONBIO, &flag);
