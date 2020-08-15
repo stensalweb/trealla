@@ -26,6 +26,7 @@
 #include <unistd.h>
 #endif
 
+#if USE_SSL
 #ifdef _WIN32
 #define msleep Sleep
 #else
@@ -36,6 +37,7 @@ static void msleep(int ms)
 	tv.tv_nsec = ((ms) % 1000) * 1000 * 1000;
 	nanosleep(&tv, &tv);
 }
+#endif
 #endif
 
 #if USE_SSL
