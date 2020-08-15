@@ -162,7 +162,7 @@ Others
 	now/0                   # function returning C-time in ms as integer
 	get_time/1              # function returning C-time in secs as float
 	srandom/1               # seed random generator
-	delay/1                 # sleep for ms
+	delay/1                 # delay(+integer) sleep for ms
 	loadfile/2              # loadfile(+filename,-atom)
 	savefile/2              # savefile(+filename,+atom)
 	getfile/2               # getfile(+filename,-list)
