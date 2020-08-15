@@ -7200,11 +7200,6 @@ typedef struct uuid_ {
 	uint64_t u1, u2;
 } uuid;
 
-#define MASK_FINAL 0x0000FFFFFFFFFFFF // Final 48 bits
-
-static uint64_t g_seed = 0;
-static void uuid_seed(uint64_t v) { g_seed = v & MASK_FINAL; }
-
 static void compare_and_zero(uint64_t v1, uint64_t *v2, uint64_t *v)
 {
 	if (v1 != *v2) {
@@ -7213,12 +7208,15 @@ static void compare_and_zero(uint64_t v1, uint64_t *v2, uint64_t *v)
 	}
 }
 
+#define MASK_FINAL 0x0000FFFFFFFFFFFF // Final 48 bits
+
 static uuid *uuid_gen1(uuid *u)
 {
 	static uint64_t s_last = 0, s_cnt = 0;
+	static uint64_t g_seed = 0;
 
 	if (!g_seed)
-		uuid_seed(time(0));
+		g_seed = (uint64_t)time(0) & MASK_FINAL;
 
 	uint64_t now = gettimeofday_usec();
 	compare_and_zero(now, &s_last, &s_cnt);
