@@ -125,6 +125,7 @@ SWI-Prolog
 	getenv/2                # getenv(+name,-value)
 	setenv/2                # setenv(+name,+value)
 	unsetenv/1              # unsetenv(+name)
+	uuid/1                  # uuid(-atom)
 
 	delete_file/1
 	exists_file/1
@@ -174,7 +175,6 @@ Others
 	sha1/2                  # sha1(?atom,?hash)        NEEDS OPENSSL
 	sha256/2                # sha256(?atom,?hash)      NEEDS OPENSSL
 	sha512/2                # sha512(?atom,?hash)      NEEDS OPENSSL
-	uuid/1                  # uuid(-atom)
 	save/1                  # save(+filename)
 
 	dict:set/4              # set(+dict,+name,+value,-dict)
