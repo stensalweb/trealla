@@ -235,9 +235,22 @@ int retry_choice(query *q)
 		c->val_type = TYPE_EMPTY;
 	}
 
-	q->st = ch->st;
+	for (arena *a = q->arenas; a;) {
+		if (a->nbr > ch->st.anbr) {
+			arena *save = a;
+			q->arenas = a = a->next;
+			free(save->heap);
+			free(save);
+			continue;
+		}
 
-	// TODO: trim the arenas
+		if (a->nbr == ch->st.anbr)
+			break;
+
+		a = a->next;
+	}
+
+	q->st = ch->st;
 
 	frame *g = GET_FRAME(q->st.curr_frame);
 	g->nbr_vars = ch->nbr_vars;

@@ -208,7 +208,7 @@ typedef struct {
 	cell *curr_cell;
 	clause *curr_clause;
 	sliter *iter;
-	idx_t curr_frame, fp, hp, tp, sp;
+	idx_t curr_frame, fp, hp, tp, sp, anbr;
 } qstate;
 
 typedef struct {
@@ -224,6 +224,7 @@ struct arena_ {
 	arena *next;
 	cell *heap;
 	idx_t hp, h_size;
+	unsigned nbr;
 };
 
 struct query_ {
@@ -250,7 +251,7 @@ struct query_ {
 	idx_t nbr_frames, nbr_slots, nbr_trails, nbr_choices;
 	idx_t max_choices, max_frames, max_slots, max_trails, max_heaps;
 	idx_t tot_heaps, tot_heapsize, tmpq_size[MAX_QUEUES];
-	idx_t h_size, tmph_size, q_size[MAX_QUEUES];
+	idx_t h_size, tmph_size, q_size[MAX_QUEUES], anbr;
 };
 
 struct parser_ {

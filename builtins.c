@@ -13,6 +13,7 @@
 #include <io.h>
 #define isatty _isatty
 #define snprintf _snprintf
+#define msleep Sleep
 #define PATH_SEP "\\"
 #else
 #include <unistd.h>
@@ -32,9 +33,7 @@
 
 #define CHECK_OVERFLOW 1
 
-#ifdef _WIN32
-#define msleep Sleep
-#else
+#ifndef _WIN32
 static void msleep(int ms)
 {
 	struct timespec tv;
@@ -257,6 +256,7 @@ static cell *alloc_heap(query *q, idx_t nbr_cells)
 		q->arenas = calloc(1, sizeof(arena));
 		q->arenas->heap = calloc(q->h_size, sizeof(cell));
 		q->arenas->h_size = q->h_size;
+		q->arenas->nbr = q->st.anbr++;
 	}
 
 	if ((q->st.hp + nbr_cells) >= q->h_size) {
@@ -267,6 +267,7 @@ static cell *alloc_heap(query *q, idx_t nbr_cells)
 		a->heap = calloc(q->h_size, sizeof(cell));
 		copy_cells(a->heap, q->arenas->heap, save_size);
 		a->h_size = q->h_size;
+		a->nbr = q->st.anbr++;
 		q->arenas = a;
 	}
 
