@@ -4936,7 +4936,7 @@ static int fn_clause_3(query *q)
 	if (!is_var(p3)) {
 		uuid u;
 		uuid_from_string(GET_STR(p3), &u);
-		clause *r = find_in_db(q->m, (void*)p1->val_int);
+		clause *r = find_in_db(q->m, &u);
 		if (!r) return 0;
 		t = &r->t;
 	} else {
