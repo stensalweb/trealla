@@ -1,6 +1,7 @@
 samples/test1.pro
 core
 tpl
+*.db
 *.a
 *.o
 *.exe

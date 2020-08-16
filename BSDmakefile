@@ -49,7 +49,7 @@ testswi:
 	./tests/runswi.sh
 
 clean:
-	rm -f tpl *.o *.out *.log gmon.* *.core
+	rm -f tpl *.o *.out gmon.* *.core
 
 # from [gcc|clang] -MM *.c
 
