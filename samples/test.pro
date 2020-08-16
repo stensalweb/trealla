@@ -154,7 +154,7 @@ test17 :-
 	write(Bag), nl.
 
 test18a :- assertz(f18(123),R), assertz(f18(456)), erase(R), listing(f18).
-test18b :- assertz(f18(123),_), clause(f18(X),B,_).
+test18b :- assertz(f18(123),_), clause(f18(X),_,_).
 
 task50(T) :-
 	between(1,inf,_),

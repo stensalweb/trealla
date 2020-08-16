@@ -576,16 +576,13 @@ clause *find_in_db(module *m, uuid *ref)
 
 int erase_from_db(module *m, uuid *ref)
 {
-	for (rule *h = m->head; h; h = h->next) {
-		for (clause *r = h->head ; r; r = r->next) {
-			if (!memcmp(&r->u, ref, sizeof(uuid))) {
-				r->t.deleted = 1;
-				return 1;
-			}
-		}
-	}
+	clause *r = find_in_db(m, ref);
 
-	return 0;
+	if (!r)
+		return 0;
+
+	r->t.deleted = 1;
+	return 1;
 }
 
 static void set_dynamic_in_db(module *m, const char *name, idx_t arity)
