@@ -4978,10 +4978,7 @@ static int fn_asserta_2(query *q)
 	parser_assign_vars(p);
 
 	clause *r = asserta_to_db(q->m, p->t, 0);
-
-	if (!r)
-		return 0;
-
+	if (!r) return 0;
 	char tmpbuf[128];
 	uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
 	cell tmp2 = make_string(q, tmpbuf);
@@ -5007,10 +5004,7 @@ static int fn_assertz_2(query *q)
 	parser_assign_vars(p);
 
 	clause *r = assertz_to_db(q->m, p->t, 0);
-
-	if (!r)
-		return 0;
-
+	if (!r) return 0;
 	char tmpbuf[128];
 	uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
 	cell tmp2 = make_string(q, tmpbuf);
