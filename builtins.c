@@ -72,28 +72,6 @@ void throw_error(query *q, cell *c, const char *err_type, const char *expected)
 	free(dst);
 }
 
-#ifdef _WIN32
-static uint64_t gettimeofday_usec(void)
-{
-    static const uint64_t epoch = 116444736000000000ULL;
-    FILETIME file_time;
-    SYSTEMTIME system_time;
-    ULARGE_INTEGER u;
-    GetSystemTime(&system_time);
-    SystemTimeToFileTime(&system_time, &file_time);
-    u.LowPart = file_time.dwLowDateTime;
-    u.HighPart = file_time.dwHighDateTime;
-    return (u.QuadPart - epoch) / 10 + (1000ULL * system_time.wMilliseconds);
-}
-#else
-static uint64_t gettimeofday_usec(void)
-{
-    struct timeval tp;
-    gettimeofday(&tp, NULL);
-    return ((uint64_t)tp.tv_sec * 1000 * 1000) + tp.tv_usec;
-}
-#endif
-
 static void pin_vars(query *q, uint32_t mask)
 {
 	idx_t curr_choice = q->cp - 1;
@@ -4939,8 +4917,10 @@ static int fn_instance_2(query *q)
 
 static int fn_erase_1(query *q)
 {
-	GET_FIRST_ARG(p1,integer);
-	erase_from_db(q->m, (void*)p1->val_int);
+	GET_FIRST_ARG(p1,atom);
+	uuid u;
+	uuid_from_string(GET_STR(p1), &u);
+	erase_from_db(q->m, &u);
 	return 1;
 }
 
@@ -4953,8 +4933,9 @@ static int fn_clause_3(query *q)
 	if (!do_match(q, p1))
 		return 0;
 
-	cell tmp;
-	make_int(&tmp, (uint_t)q->st.curr_clause);
+	char tmpbuf[128];
+	uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+	cell tmp = make_string(q, tmpbuf);
 	set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
 	term *t = &q->st.curr_clause->t;
 	cell *body = get_body(q->m, t->cells);
@@ -4988,8 +4969,9 @@ static int fn_asserta_2(query *q)
 	if (!r)
 		return 0;
 
-	cell tmp2;
-	make_int(&tmp2, (uint_t)r);
+	char tmpbuf[128];
+	uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+	cell tmp2 = make_string(q, tmpbuf);
 	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
 	return 1;
 }
@@ -5016,8 +4998,9 @@ static int fn_assertz_2(query *q)
 	if (!r)
 		return 0;
 
-	cell tmp2;
-	make_int(&tmp2, (uint_t)r);
+	char tmpbuf[128];
+	uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+	cell tmp2 = make_string(q, tmpbuf);
 	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
 	return 1;
 }
@@ -7289,47 +7272,6 @@ static int fn_unsetenv_1(query *q)
 	GET_FIRST_ARG(p1,atom);
 	unsetenv(GET_STR(p1));
 	return 1;
-}
-
-typedef struct uuid_ {
-	uint64_t u1, u2;
-} uuid;
-
-static void compare_and_zero(uint64_t v1, uint64_t *v2, uint64_t *v)
-{
-	if (v1 != *v2) {
-		*v2 = v1;
-		*v = 0;
-	}
-}
-
-#define MASK_FINAL 0x0000FFFFFFFFFFFF // Final 48 bits
-
-static uuid *uuid_gen(uuid *u)
-{
-	static uint64_t s_last = 0, s_cnt = 0;
-	static uint64_t g_seed = 0;
-
-	if (!g_seed)
-		g_seed = (uint64_t)time(0) & MASK_FINAL;
-
-	uint64_t now = gettimeofday_usec();
-	compare_and_zero(now, &s_last, &s_cnt);
-	u->u1 = now;
-	u->u2 = s_cnt++;
-	u->u2 <<= 48;
-	u->u2 |= g_seed;
-	return u;
-}
-
-static char *uuid_to_string(const uuid *u, char *buf, size_t buflen)
-{
-	snprintf(buf, buflen, "%016llX-%04llX-%012llX",
-		(unsigned long long)u->u1,
-		(unsigned long long)(u->u2 >> 48),
-		(unsigned long long)(u->u2 & MASK_FINAL));
-
-	return buf;
 }
 
 static int fn_uuid_1(query *q)

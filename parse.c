@@ -4,6 +4,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <float.h>
+#include <sys/time.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -269,6 +270,82 @@ rule *find_functor(module *m, const char *name, unsigned arity)
 	return NULL;
 }
 
+uint64_t gettimeofday_usec(void)
+#ifdef _WIN32
+{
+    static const uint64_t epoch = 116444736000000000ULL;
+    FILETIME file_time;
+    SYSTEMTIME system_time;
+    ULARGE_INTEGER u;
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    u.LowPart = file_time.dwLowDateTime;
+    u.HighPart = file_time.dwHighDateTime;
+    return (u.QuadPart - epoch) / 10 + (1000ULL * system_time.wMilliseconds);
+}
+#else
+{
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    return ((uint64_t)tp.tv_sec * 1000 * 1000) + tp.tv_usec;
+}
+#endif
+
+static void compare_and_zero(uint64_t v1, uint64_t *v2, uint64_t *v)
+{
+	if (v1 != *v2) {
+		*v2 = v1;
+		*v = 0;
+	}
+}
+
+#define MASK_FINAL 0x0000FFFFFFFFFFFF // Final 48 bits
+
+void uuid_gen(uuid *u)
+{
+	static uint64_t s_last = 0, s_cnt = 0;
+	static uint64_t g_seed = 0;
+
+	if (!g_seed)
+		g_seed = (uint64_t)time(0) & MASK_FINAL;
+
+	uint64_t now = gettimeofday_usec();
+	compare_and_zero(now, &s_last, &s_cnt);
+	u->u1 = now;
+	u->u2 = s_cnt++;
+	u->u2 <<= 48;
+	u->u2 |= g_seed;
+}
+
+char *uuid_to_string(const uuid *u, char *buf, size_t buflen)
+{
+	snprintf(buf, buflen, "%016llX-%04llX-%012llX",
+		(unsigned long long)u->u1,
+		(unsigned long long)(u->u2 >> 48),
+		(unsigned long long)(u->u2 & MASK_FINAL));
+
+	return buf;
+}
+
+void uuid_from_string(const char *s, uuid *u)
+{
+	if (!s) {
+		uuid tmp = {0};
+		*u = tmp;
+	}
+
+	unsigned long long p1 = 0, p2 = 0, p3 = 0;
+
+	if (sscanf(s, "%llX%*c%llX%*c%llX", &p1, &p2, &p3) != 3) {
+		uuid tmp = {0};
+		*u = tmp;
+	}
+
+	u->u1 = p1;
+	u->u2 = p2 << 48;
+	u->u2 |= p3 & MASK_FINAL;
+}
+
 static rule *create_rule(module *m, cell *c)
 {
 	rule *h = calloc(1, sizeof(rule));
@@ -399,6 +476,8 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 		sl_set(h->index, c, r);
 	}
 
+	uuid_gen(&r->u);
+	m->last_u = r->u;
 	t->cidx = 0;
 	return r;
 }
@@ -452,6 +531,8 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 		sl_app(h->index, c, r);
 	}
 
+	uuid_gen(&r->u);
+	m->last_u = r->u;
 	t->cidx = 0;
 	return r;
 }
@@ -481,11 +562,11 @@ int abolish_from_db(module *m, cell *c)
 	return 1;
 }
 
-clause *find_in_db(module *m, void *ref)
+clause *find_in_db(module *m, uuid *ref)
 {
 	for (rule *h = m->head; h; h = h->next) {
 		for (clause *r = h->head ; r; r = r->next) {
-			if (r == ref)
+			if (!memcmp(&r->u, ref, sizeof(uuid)))
 				return r;
 		}
 	}
@@ -493,11 +574,11 @@ clause *find_in_db(module *m, void *ref)
 	return NULL;
 }
 
-int erase_from_db(module *m, void *ref)
+int erase_from_db(module *m, uuid *ref)
 {
 	for (rule *h = m->head; h; h = h->next) {
 		for (clause *r = h->head ; r; r = r->next) {
-			if (r == ref) {
+			if (!memcmp(&r->u, ref, sizeof(uuid))) {
 				r->t.deleted = 1;
 				return 1;
 			}
@@ -517,6 +598,19 @@ static void set_dynamic_in_db(module *m, const char *name, idx_t arity)
 	if (!h) h = create_rule(m, &tmp);
 	h->flags |= FLAG_RULE_DYNAMIC;
 	h->index = sl_create(compkey);
+}
+
+static void set_persist_in_db(module *m, const char *name, idx_t arity)
+{
+	cell tmp;
+	tmp.val_type = TYPE_LITERAL;
+	tmp.val_offset = find_in_pool(name);
+	tmp.arity = arity;
+	rule *h = find_match(m, &tmp);
+	if (!h) h = create_rule(m, &tmp);
+	h->flags |= FLAG_RULE_DYNAMIC | FLAG_RULE_PERSIST;
+	h->index = sl_create(compkey);
+	m->persist = 1;
 }
 
 static void set_volatile_in_db(module *m, const char *name, unsigned arity)
@@ -848,14 +942,28 @@ static void directives(parser *p, term *t)
 
 	if (!strcmp(dir, "dynamic") && (c->arity >= 1)) {
 		cell *p1 = c + 1;
-		const char *name = NULL;
-		unsigned arity = 0;
 
 		while (!is_end(p1)) {
 			if (is_literal(p1) && !strcmp(GET_STR(p1), "/") && (p1->arity == 2)) {
 				cell *c_name = p1 + 1;
 				cell *c_arity = p1 + 2;
-				set_dynamic_in_db(p->m, name=GET_STR(c_name), arity=c_arity->val_int);
+				set_dynamic_in_db(p->m, GET_STR(c_name), c_arity->val_int);
+				p1 += p1->nbr_cells;
+			} else
+				p1 += 1;
+		}
+
+		return;
+	}
+
+	if (!strcmp(dir, "persist") && (c->arity >= 1)) {
+		cell *p1 = c + 1;
+
+		while (!is_end(p1)) {
+			if (is_literal(p1) && !strcmp(GET_STR(p1), "/") && (p1->arity == 2)) {
+				cell *c_name = p1 + 1;
+				cell *c_arity = p1 + 2;
+				set_persist_in_db(p->m, GET_STR(c_name), c_arity->val_int);
 				p1 += p1->nbr_cells;
 			} else
 				p1 += 1;

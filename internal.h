@@ -144,8 +144,13 @@ typedef struct {
 	cell cells[];
 } term;
 
+typedef struct {
+	uint64_t u1, u2;
+} uuid;
+
 struct clause_ {
 	clause *next;
+	uuid u;
 	term t;
 };
 
@@ -153,7 +158,8 @@ enum {
 	FLAG_RULE_PREBUILT=1<<0,
 	FLAG_RULE_DYNAMIC=1<<1,
 	FLAG_RULE_PUBLIC=1<<2,
-	FLAG_RULE_VOLATILE=1<<3
+	FLAG_RULE_VOLATILE=1<<3,
+	FLAG_RULE_PERSIST=1<<4
 };
 
 struct rule_ {
@@ -280,6 +286,7 @@ struct module_ {
 	parser *p;
 	struct op_table ops[MAX_USER_OPS+1];
     const char *keywords[1000];
+    uuid last_u;
 
 	struct {
 		int double_quote_codes, double_quote_chars, double_quote_atom;
@@ -288,7 +295,7 @@ struct module_ {
 	} flag;
 
 	int prebuilt, dq, halt, halt_code, status, trace, quiet, dirty;
-	int user_ops, opt, stats, iso_only;
+	int user_ops, opt, stats, iso_only, persist;
 };
 
 extern idx_t g_empty_s, g_dot_s, g_cut_s, g_nil_s, g_true_s, g_fail_s;
@@ -316,8 +323,8 @@ int abolish_from_db(module *m, cell *c);
 clause *asserta_to_db(module *m, term *t, int consulting);
 clause *assertz_to_db(module *m, term *t, int consulting);
 void retract_from_db(module *m, clause *r);
-int erase_from_db(module *m, void *ref);
-clause *find_in_db(module *m, void *ref);
+int erase_from_db(module *m, uuid *ref);
+clause *find_in_db(module *m, uuid *ref);
 int get_op(module *m, const char *name, unsigned *val_type, int *userop, int hint_prefix);
 void write_canonical(query *q, FILE *fp, cell *c, int running, int dq, int depth);
 size_t write_canonical_to_buf(query *q, char *dst, size_t dstlen, cell *c, int running, int dq, int depth);
@@ -357,5 +364,7 @@ unsigned count_bits(uint64_t mask, unsigned bit);
 void try_me(const query *q, unsigned vars);
 void load_keywords(module *m);
 void throw_error(query *q, cell *c, const char *err_type, const char *expected);
-
-
+char *uuid_to_string(const uuid *u, char *buf, size_t buflen);
+void uuid_from_string(const char *s, uuid *u);
+void uuid_gen(uuid *u);
+uint64_t gettimeofday_usec(void);

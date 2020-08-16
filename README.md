@@ -125,7 +125,7 @@ SWI-Prolog
 	getenv/2
 	setenv/2
 	unsetenv/1
-	uuid/1                  # generates non-standard UUID
+	uuid/1                       # generates non-standard UUID string
 
 	delete_file/1
 	exists_file/1
@@ -181,6 +181,7 @@ Others
 	sha256/2                # sha256(?atom,?hash)      NEEDS OPENSSL
 	sha512/2                # sha512(?atom,?hash)      NEEDS OPENSSL
 	save/1                  # save(+filename)
+	persist/1               # a directive
 
 	dict:set/4              # set(+dict,+name,+value,-dict)
 	dict:del/3              # del(+dict,+name,-dict)
@@ -205,6 +206,15 @@ The optional schemes 'http://' (the default) and 'https://' can be provided in t
 With *bread/3* the 'len' arg can be an integer > 0 meaning return that many
 bytes, = 0 meaning return what is there (if non-blocking) or a var meaning
 return all bytes until end end of file,
+
+
+Persistence			##TO-DO##
+===========
+
+Declaring something dynamic with the *persist* directive causes that
+rule to be saved to a per-module database. That database is also
+automatically loaded with the module. Changes are recorded in a
+transaction log as they happen.
 
 
 Coroutines
