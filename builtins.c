@@ -4976,7 +4976,6 @@ static int fn_asserta_2(query *q)
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-
 	clause *r = asserta_to_db(q->m, p->t, 0);
 	if (!r) return 0;
 	char tmpbuf[128];
@@ -5002,7 +5001,6 @@ static int fn_assertz_2(query *q)
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-
 	clause *r = assertz_to_db(q->m, p->t, 0);
 	if (!r) return 0;
 	char tmpbuf[128];
