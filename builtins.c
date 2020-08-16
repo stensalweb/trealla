@@ -4906,15 +4906,6 @@ static int fn_iso_setof_3(query *q)
 	return unify(q, p3, p3_ctx, l, q->st.curr_frame);
 }
 
-static int fn_instance_2(query *q)
-{
-	GET_FIRST_ARG(p1,integer);
-	GET_NEXT_ARG(p2,any);
-	clause *r = find_in_db(q->m, (void*)p1->val_int);
-	if (!r) return 0;
-	return unify(q, p2, p2_ctx, r->t.cells, q->st.curr_frame);
-}
-
 static int fn_erase_1(query *q)
 {
 	GET_FIRST_ARG(p1,atom);
@@ -4924,25 +4915,47 @@ static int fn_erase_1(query *q)
 	return 1;
 }
 
+static int fn_instance_2(query *q)
+{
+	GET_FIRST_ARG(p1,atom);
+	GET_NEXT_ARG(p2,any);
+	uuid u;
+	uuid_from_string(GET_STR(p1), &u);
+	clause *r = find_in_db(q->m, &u);
+	if (!r) return 0;
+	return unify(q, p2, p2_ctx, r->t.cells, q->st.curr_frame);
+}
+
 static int fn_clause_3(query *q)
 {
 	GET_FIRST_ARG(p1,any);
 	GET_NEXT_ARG(p2,any);
-	GET_NEXT_ARG(p3,var);
+	GET_NEXT_ARG(p3,atom_or_var);
+	term *t;
 
-	if (!do_match(q, p1))
-		return 0;
+	if (!is_var(p3)) {
+		uuid u;
+		uuid_from_string(GET_STR(p3), &u);
+		clause *r = find_in_db(q->m, (void*)p1->val_int);
+		if (!r) return 0;
+		t = &r->t;
+	} else {
+		if (!do_match(q, p1))
+			return 0;
 
-	char tmpbuf[128];
-	uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
-	cell tmp = make_string(q, tmpbuf);
-	set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
-	term *t = &q->st.curr_clause->t;
+		char tmpbuf[128];
+		uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+		cell tmp = make_string(q, tmpbuf);
+		set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
+		t = &q->st.curr_clause->t;
+	}
+
 	cell *body = get_body(q->m, t->cells);
 
 	if (body)
 		return unify(q, p2, p2_ctx, body, q->st.curr_frame);
 
+	cell tmp;
 	make_literal(&tmp, g_true_s);
 	return unify(q, p2, p2_ctx, &tmp, q->st.curr_frame);
 }
