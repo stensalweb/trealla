@@ -4944,7 +4944,7 @@ static int fn_clause_3(query *q)
 			return 0;
 
 		char tmpbuf[128];
-		uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+		uuid_to_string(&q->st.curr_clause->u, tmpbuf, sizeof(tmpbuf));
 		cell tmp = make_string(q, tmpbuf);
 		set_var(q, p3, p3_ctx, &tmp, q->st.curr_frame);
 		t = &q->st.curr_clause->t;
@@ -4983,7 +4983,7 @@ static int fn_asserta_2(query *q)
 		return 0;
 
 	char tmpbuf[128];
-	uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+	uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
 	cell tmp2 = make_string(q, tmpbuf);
 	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
 	return 1;
@@ -5012,7 +5012,7 @@ static int fn_assertz_2(query *q)
 		return 0;
 
 	char tmpbuf[128];
-	uuid_to_string(&q->m->last_u, tmpbuf, sizeof(tmpbuf));
+	uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
 	cell tmp2 = make_string(q, tmpbuf);
 	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
 	return 1;

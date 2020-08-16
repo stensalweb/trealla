@@ -477,7 +477,6 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 	}
 
 	uuid_gen(&r->u);
-	m->last_u = r->u;
 	t->cidx = 0;
 	return r;
 }
@@ -532,7 +531,6 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 	}
 
 	uuid_gen(&r->u);
-	m->last_u = r->u;
 	t->cidx = 0;
 	return r;
 }

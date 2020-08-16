@@ -286,7 +286,6 @@ struct module_ {
 	parser *p;
 	struct op_table ops[MAX_USER_OPS+1];
     const char *keywords[1000];
-    uuid last_u;
 
 	struct {
 		int double_quote_codes, double_quote_chars, double_quote_atom;
