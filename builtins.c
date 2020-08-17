@@ -8011,6 +8011,8 @@ static const struct builtins g_other_funcs[] =
 	{"send", 1, fn_send_1, "+term"},
 	{"recv", 1, fn_recv_1, "?term"},
 
+	// To be used for database log
+
 	{"$a", 2, fn_sys_asserta_2, "+term,+ref"},
 	{"$z", 2, fn_sys_assertz_2, "+term,+ref"},
 	{"$e", 2, fn_erase_1, "+ref"},
