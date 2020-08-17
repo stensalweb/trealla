@@ -3904,7 +3904,7 @@ static int fn_iso_length_2(query *q)
 
 static int fn_iso_clause_2(query *q)
 {
-	GET_FIRST_ARG(p1,any);
+	GET_FIRST_ARG(p1,nonvar);
 	GET_NEXT_ARG(p2,any);
 
 	if (!do_match(q, p1))
@@ -3923,8 +3923,7 @@ static int fn_iso_clause_2(query *q)
 
 static int fn_iso_retract_1(query *q)
 {
-	GET_FIRST_ARG(p1,any);
-	GET_NEXT_ARG(p2,any);
+	GET_FIRST_ARG(p1,nonvar);
 
 	if (!do_match(q, p1))
 		return 0;
@@ -3980,7 +3979,7 @@ static int fn_iso_abolish_1(query *q)
 
 static int fn_iso_asserta_1(query *q)
 {
-	GET_FIRST_ARG(p1,any);
+	GET_FIRST_ARG(p1,nonvar);
 	cell *tmp = deep_clone_term_on_tmp(q, p1, p1_ctx);
 	idx_t nbr_cells = tmp->nbr_cells;
 	parser *p = q->m->p;
@@ -3998,7 +3997,7 @@ static int fn_iso_asserta_1(query *q)
 
 static int fn_iso_assertz_1(query *q)
 {
-	GET_FIRST_ARG(p1,any);
+	GET_FIRST_ARG(p1,nonvar);
 	cell *tmp = deep_clone_term_on_tmp(q, p1, p1_ctx);
 	idx_t nbr_cells = tmp->nbr_cells;
 	parser *p = q->m->p;
@@ -4960,7 +4959,7 @@ static int fn_clause_3(query *q)
 	return unify(q, p2, p2_ctx, &tmp, q->st.curr_frame);
 }
 
-static int fn_asserta_2(query *q)
+static int do_asserta_2(query *q)
 {
 	GET_FIRST_ARG(p1,any);
 	GET_NEXT_ARG(p2,atom_or_var);
@@ -4993,7 +4992,21 @@ static int fn_asserta_2(query *q)
 	return 1;
 }
 
-static int fn_assertz_2(query *q)
+static int fn_asserta_2(query *q)
+{
+	GET_FIRST_ARG(p1,nonvar);
+	GET_NEXT_ARG(p2,var);
+	return do_asserta_2(q);
+}
+
+static int fn_sys_asserta_2(query *q)
+{
+	GET_FIRST_ARG(p1,nonvar);
+	GET_NEXT_ARG(p2,atom);
+	return do_asserta_2(q);
+}
+
+static int do_assertz_2(query *q)
 {
 	GET_FIRST_ARG(p1,any);
 	GET_NEXT_ARG(p2,atom_or_var);
@@ -5024,6 +5037,20 @@ static int fn_assertz_2(query *q)
 	}
 
 	return 1;
+}
+
+static int fn_assertz_2(query *q)
+{
+	GET_FIRST_ARG(p1,nonvar);
+	GET_NEXT_ARG(p2,var);
+	return do_assertz_2(q);
+}
+
+static int fn_sys_assertz_2(query *q)
+{
+	GET_FIRST_ARG(p1,nonvar);
+	GET_NEXT_ARG(p2,atom);
+	return do_assertz_2(q);
 }
 
 static void save_db(FILE *fp, query *q, int dq)
@@ -7984,8 +8011,8 @@ static const struct builtins g_other_funcs[] =
 	{"send", 1, fn_send_1, "+term"},
 	{"recv", 1, fn_recv_1, "?term"},
 
-	{"$a", 2, fn_asserta_2, "+term,+ref"},
-	{"$z", 2, fn_assertz_2, "+term,+ref"},
+	{"$a", 2, fn_sys_asserta_2, "+term,+ref"},
+	{"$z", 2, fn_sys_assertz_2, "+term,+ref"},
 	{"$e", 2, fn_erase_1, "+ref"},
 
 	{0}
