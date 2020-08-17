@@ -327,11 +327,12 @@ char *uuid_to_string(const uuid *u, char *buf, size_t buflen)
 	return buf;
 }
 
-void uuid_from_string(const char *s, uuid *u)
+int uuid_from_string(const char *s, uuid *u)
 {
 	if (!s) {
 		uuid tmp = {0};
 		*u = tmp;
+		return 0;
 	}
 
 	unsigned long long p1 = 0, p2 = 0, p3 = 0;
@@ -339,11 +340,13 @@ void uuid_from_string(const char *s, uuid *u)
 	if (sscanf(s, "%llX%*c%llX%*c%llX", &p1, &p2, &p3) != 3) {
 		uuid tmp = {0};
 		*u = tmp;
+		return 0;
 	}
 
 	u->u1 = p1;
 	u->u2 = p2 << 48;
 	u->u2 |= p3 & MASK_FINAL;
+	return 1;
 }
 
 static rule *create_rule(module *m, cell *c)

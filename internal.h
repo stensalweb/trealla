@@ -364,6 +364,6 @@ void try_me(const query *q, unsigned vars);
 void load_keywords(module *m);
 void throw_error(query *q, cell *c, const char *err_type, const char *expected);
 char *uuid_to_string(const uuid *u, char *buf, size_t buflen);
-void uuid_from_string(const char *s, uuid *u);
+int uuid_from_string(const char *s, uuid *u);
 void uuid_gen(uuid *u);
 uint64_t gettimeofday_usec(void);

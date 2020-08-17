@@ -4963,7 +4963,7 @@ static int fn_clause_3(query *q)
 static int fn_asserta_2(query *q)
 {
 	GET_FIRST_ARG(p1,any);
-	GET_NEXT_ARG(p2,var);
+	GET_NEXT_ARG(p2,atom_or_var);
 	cell *tmp = deep_clone_term_on_tmp(q, p1, p1_ctx);
 	idx_t nbr_cells = tmp->nbr_cells;
 	parser *p = q->m->p;
@@ -4978,17 +4978,25 @@ static int fn_asserta_2(query *q)
 	parser_assign_vars(p);
 	clause *r = asserta_to_db(q->m, p->t, 0);
 	if (!r) return 0;
-	char tmpbuf[128];
-	uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
-	cell tmp2 = make_string(q, tmpbuf);
-	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
+
+	if (!is_var(p2)) {
+		uuid u;
+		uuid_from_string(GET_STR(p2), &u);
+		r->u = u;
+	} else {
+		char tmpbuf[128];
+		uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
+		cell tmp2 = make_string(q, tmpbuf);
+		set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
+	}
+
 	return 1;
 }
 
 static int fn_assertz_2(query *q)
 {
 	GET_FIRST_ARG(p1,any);
-	GET_NEXT_ARG(p2,var);
+	GET_NEXT_ARG(p2,atom_or_var);
 	cell *tmp = deep_clone_term_on_tmp(q, p1, p1_ctx);
 	idx_t nbr_cells = tmp->nbr_cells;
 	parser *p = q->m->p;
@@ -5003,10 +5011,18 @@ static int fn_assertz_2(query *q)
 	parser_assign_vars(p);
 	clause *r = assertz_to_db(q->m, p->t, 0);
 	if (!r) return 0;
-	char tmpbuf[128];
-	uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
-	cell tmp2 = make_string(q, tmpbuf);
-	set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
+
+	if (!is_var(p2)) {
+		uuid u;
+		uuid_from_string(GET_STR(p2), &u);
+		r->u = u;
+	} else {
+		char tmpbuf[128];
+		uuid_to_string(&r->u, tmpbuf, sizeof(tmpbuf));
+		cell tmp2 = make_string(q, tmpbuf);
+		set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
+	}
+
 	return 1;
 }
 
@@ -7850,12 +7866,12 @@ static const struct builtins g_iso_funcs[] =
 
 	//
 
-	{"module", 1, fn_module_1, "+atom"},
-	{"consult", 1, fn_consult_1, "+atom"},
-	{"deconsult", 1, fn_deconsult_1, "+atom"},
+	{"module", 1, fn_module_1, NULL},
+	{"consult", 1, fn_consult_1, NULL},
+	{"deconsult", 1, fn_deconsult_1, NULL},
 	{"listing", 0, fn_listing_0, NULL},
-	{"listing", 1, fn_listing_1, "+atom"},
-	{"time", 1, fn_time_1, "+term"},
+	{"listing", 1, fn_listing_1, NULL},
+	{"time", 1, fn_time_1, NULL},
 
 	{0}
 };
@@ -7885,7 +7901,7 @@ static const struct builtins g_other_funcs[] =
 
 	{"string", 1, fn_iso_atom_1, "+term"},
 	{"atomic_concat", 3, fn_atomic_concat_3, NULL},
-	{"replace", 4, fn_replace_4, NULL},
+	{"replace", 4, fn_replace_4, "+orig,+from,+to,-new"},
 	{"ignore", 1, fn_ignore_1, "+callable"},
 	{"writeln", 1, fn_writeln_1, "+term"},
 	{"sleep", 1, fn_sleep_1, "+integer"},
@@ -7967,6 +7983,10 @@ static const struct builtins g_other_funcs[] =
 	{"yield", 0, fn_yield_0, NULL},
 	{"send", 1, fn_send_1, "+term"},
 	{"recv", 1, fn_recv_1, "?term"},
+
+	{"$a", 2, fn_asserta_2, "+term,+ref"},
+	{"$z", 2, fn_assertz_2, "+term,+ref"},
+	{"$e", 2, fn_erase_1, "+ref"},
 
 	{0}
 };
