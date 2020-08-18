@@ -830,6 +830,8 @@ static void consultall(parser *p, cell *l)
 	p->skip = 1;
 }
 
+static int module_load_text(module *m, const char *src);
+
 static void directives(parser *p, term *t)
 {
 	p->skip = 0;
@@ -926,13 +928,32 @@ static void directives(parser *p, term *t)
 
 	if (!strcmp(dir, "use_module") && (c->arity == 1)) {
 		cell *p1 = c + 1;
-
 		const char *name = GET_STR(p1);
+		int use_lib = 0;
+
+		if (!strcmp(name, "library")) {
+			p1 = p1 + 1;
+			if (!is_literal(p1)) return;
+			name = GET_STR(p1);
+		}
 
 		if (find_module(name)) {
-			fprintf(stderr, "Error: module already loaded: %s\n", name);
-			p->error = 1;
+			//fprintf(stderr, "Error: module already loaded: %s\n", name);
+			//p->error = 1;
 			return;
+		}
+
+		library *lib = g_libs;
+
+		while (use_lib && lib->name) {
+			if (!strcmp(lib->name, name)) {
+				char *src = strndup((const char*)lib->start, (lib->end - lib->start));
+				module_load_text(p->m, src);
+				free(src);
+				break;
+			}
+
+			lib++;
 		}
 
 		return;
@@ -2764,9 +2785,13 @@ prolog *pl_create()
 	library *lib = g_libs;
 
 	while (lib->name) {
-		char *src = strndup((const char*)lib->start, (lib->end - lib->start));
-		module_load_text(pl->m, src);
-		free(src);
+		if (!strcmp(lib->name, "apply") || !strcmp(lib->name, "dict") ||
+			!strcmp(lib->name, "http") || !strcmp(lib->name, "lists")) {
+			char *src = strndup((const char*)lib->start, (lib->end - lib->start));
+			module_load_text(pl->m, src);
+			free(src);
+		}
+
 		lib++;
 	}
 
