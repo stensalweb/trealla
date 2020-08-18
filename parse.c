@@ -608,7 +608,7 @@ static void set_persist_in_db(module *m, const char *name, idx_t arity)
 	if (!h) h = create_rule(m, &tmp);
 	h->flags |= FLAG_RULE_DYNAMIC | FLAG_RULE_PERSIST;
 	h->index = sl_create(compkey);
-	m->persist = 1;
+	m->use_persist = 1;
 }
 
 static void set_volatile_in_db(module *m, const char *name, unsigned arity)
