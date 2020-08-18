@@ -937,11 +937,8 @@ static void directives(parser *p, term *t)
 			name = GET_STR(p1);
 		}
 
-		if (find_module(name)) {
-			//fprintf(stderr, "Error: module already loaded: %s\n", name);
-			//p->error = 1;
+		if (find_module(name))
 			return;
-		}
 
 		library *lib = g_libs;
 
