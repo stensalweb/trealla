@@ -522,7 +522,7 @@ static int unify_structure(query *q, cell *p1, idx_t p1_ctx, cell *p2, idx_t p2_
 	return 1;
 }
 
-static int unify_rational(cell *p1, cell *p2)
+static int unify_int(cell *p1, cell *p2)
 {
 	if (is_rational(p2))
 		return (p1->val_num == p2->val_num) && (p1->val_den == p2->val_den);
@@ -573,7 +573,7 @@ static const struct dispatch g_disp[] =
 	{TYPE_VAR, NULL},
 	{TYPE_LITERAL, unify_literal},
 	{TYPE_STRING, unify_string},
-	{TYPE_INT, unify_rational},
+	{TYPE_INT, unify_int},
 	{TYPE_FLOAT, unify_float},
 	{0}
 };
