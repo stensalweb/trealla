@@ -564,7 +564,7 @@ static int unify_string(cell *p1, cell *p2)
 
 struct dispatch {
 	uint8_t val_type;
-	int (*fn)(cell *p1, cell *p2);
+	int (*fn)(cell*, cell*);
 };
 
 static const struct dispatch g_disp[] =
