@@ -859,43 +859,17 @@ static void directives(parser *p, term *t)
 
 	if (!strcmp(dir, "include") && (c->arity == 1)) {
 		cell *p1 = c + 1;
-		char filename[1024];
-		strncpy(filename, GET_STR(p1), sizeof(filename));
-		filename[sizeof(filename)-1] = '\0';
-		FILE *fp = fopen(filename, "r");
-
-		if (!fp) {
-			strncpy(filename, GET_STR(p1), sizeof(filename)-5);
-			filename[sizeof(filename)-5] = '\0';
-			strcat(filename, ".pro");
-			fp = fopen(filename, "r");
-		}
-
-		if (!fp) {
-			strncpy(filename, GET_STR(p1), sizeof(filename)-5);
-			filename[sizeof(filename)-5] = '\0';
-			strcat(filename, ".pl");
-			fp = fopen(filename, "r");
-		}
-
-		if (!fp) {
-			fprintf(stderr, "Error: include file '%s' does not exist\n", GET_STR(p1));
-			p->error = 1;
-			return;
-		}
-
-		FILE *save_fp = p->fp;
+		if (!is_literal(p1)) return;
+		const char *name = GET_STR(p1);
 		int save_line_nbr = p->line_nbr;
-		module_load_fp(p->m, fp);
-		fclose(fp);
-
+		module_load_file(p->m, name);
 		p->line_nbr = save_line_nbr;
-		p->fp = save_fp;
 		return;
 	}
 
 	if (!strcmp(dir, "module") && (c->arity == 2)) {
 		cell *p1 = c + 1, *p2 = c + 2;
+		if (!is_literal(p1)) return;
 		const char *name = GET_STR(p1);
 
 		if (find_module(name)) {
@@ -911,6 +885,8 @@ static void directives(parser *p, term *t)
 
 			if (is_structure(head)) {
 				cell *f = head+1, *a = f+1;
+				if (!is_literal(f)) return;
+				if (!is_integer(a)) return;
 				cell tmp;
 				tmp.val_type = TYPE_LITERAL;
 				tmp.val_offset = find_in_pool(GET_STR(f));
@@ -928,33 +904,29 @@ static void directives(parser *p, term *t)
 
 	if ((!strcmp(dir, "use_module") || !strcmp(dir, "ensure_loaded")) && (c->arity == 1)) {
 		cell *p1 = c + 1;
+		if (!is_literal(p1)) return;
 		const char *name = GET_STR(p1);
-		int use_lib = 0;
 
 		if (!strcmp(name, "library")) {
 			p1 = p1 + 1;
 			if (!is_literal(p1)) return;
 			name = GET_STR(p1);
-		}
 
-		if (find_module(name))
-			return;
+			if (find_module(name))
+				return;
 
-		library *lib = g_libs;
+			for (library *lib = g_libs; lib->name; lib++) {
+				if (strcmp(lib->name, name))
+					continue;
 
-		while (use_lib && lib->name) {
-			if (!strcmp(lib->name, name)) {
 				char *src = strndup((const char*)lib->start, (lib->end - lib->start));
 				module_load_text(p->m, src);
 				free(src);
 				return;
 			}
 
-			lib++;
-		}
-
-		if (use_lib)
 			return;
+		}
 
 		module_load_file(p->m, name);
 		return;
@@ -964,9 +936,12 @@ static void directives(parser *p, term *t)
 		cell *p1 = c + 1;
 
 		while (!is_end(p1)) {
+			if (!is_literal(p1)) return;
 			if (is_literal(p1) && !strcmp(GET_STR(p1), "/") && (p1->arity == 2)) {
 				cell *c_name = p1 + 1;
+				if (!is_literal(c_name)) return;
 				cell *c_arity = p1 + 2;
+				if (!is_integer(c_arity)) return;
 				set_dynamic_in_db(p->m, GET_STR(c_name), c_arity->val_int);
 				p1 += p1->nbr_cells;
 			} else
@@ -980,9 +955,12 @@ static void directives(parser *p, term *t)
 		cell *p1 = c + 1;
 
 		while (!is_end(p1)) {
+			if (!is_literal(p1)) return;
 			if (is_literal(p1) && !strcmp(GET_STR(p1), "/") && (p1->arity == 2)) {
 				cell *c_name = p1 + 1;
+				if (!is_literal(c_name)) return;
 				cell *c_arity = p1 + 2;
+				if (!is_integer(c_arity)) return;
 				set_persist_in_db(p->m, GET_STR(c_name), c_arity->val_int);
 				p1 += p1->nbr_cells;
 			} else
@@ -996,9 +974,12 @@ static void directives(parser *p, term *t)
 		cell *p1 = c + 1;
 
 		while (!is_end(p1)) {
+			if (!is_literal(p1)) return;
 			if (is_literal(p1) && !strcmp(GET_STR(p1), "/") && (p1->arity == 2)) {
 				cell *c_name = p1 + 1;
+				if (!is_literal(c_name)) return;
 				cell *c_arity = p1 + 2;
+				if (!is_integer(c_arity)) return;
 				set_volatile_in_db(p->m, GET_STR(c_name), c_arity->val_int);
 				p1 += p1->nbr_cells;
 			} else
@@ -1010,6 +991,8 @@ static void directives(parser *p, term *t)
 
 	if (!strcmp(dir, "set_prolog_flag") && (c->arity == 2)) {
 		cell *p1 = c + 1, *p2 = c + 2;
+		if (!is_literal(p1)) return;
+		if (!is_literal(p2)) return;
 
 		if (!strcmp(GET_STR(p1), "double_quotes")) {
 			if (!strcmp(GET_STR(p2), "atom")) {
