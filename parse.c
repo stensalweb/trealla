@@ -926,7 +926,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "use_module") && (c->arity == 1)) {
+	if ((!strcmp(dir, "use_module") || !strcmp(dir, "ensure_loaded")) && (c->arity == 1)) {
 		cell *p1 = c + 1;
 		const char *name = GET_STR(p1);
 		int use_lib = 0;
@@ -947,12 +947,16 @@ static void directives(parser *p, term *t)
 				char *src = strndup((const char*)lib->start, (lib->end - lib->start));
 				module_load_text(p->m, src);
 				free(src);
-				break;
+				return;
 			}
 
 			lib++;
 		}
 
+		if (use_lib)
+			return;
+
+		module_load_file(p->m, name);
 		return;
 	}
 
