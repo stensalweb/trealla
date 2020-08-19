@@ -156,6 +156,12 @@ test17 :-
 test18a :- assertz(f18(123),R), assertz(f18(456)), erase(R), listing(f18).
 test18b :- assertz(f18(123),_), clause(f18(_),_,_).
 
+:-use_module(library(auth)).
+
+test40 :-
+	auth:init,
+	writeln(done).
+
 task50(T) :-
 	between(1,inf,_),
 		format('Task ... ~d',[T]), nl,

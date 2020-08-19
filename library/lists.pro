@@ -1,6 +1,7 @@
-:- module(lists,
-	[member/2, memberchk/2, select/3, selectchk/3, subtract/3, union/3,
-	intersection/3, reverse/2, append/3, nth/3, nth1/3, nth0/3]).
+:- module(lists, [
+	member/2, memberchk/2, select/3, selectchk/3, subtract/3, union/3,
+	intersection/3, reverse/2, append/3, nth/3, nth1/3, nth0/3
+	]).
 
 member(X,[X|_]).
 member(X,[_|T]) :- member(X,T).

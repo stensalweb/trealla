@@ -284,6 +284,7 @@ struct module_ {
 	char *name, *filename;
 	rule *head, *tail;
 	parser *p;
+	FILE *fp;
 	struct op_table ops[MAX_USER_OPS+1];
     const char *keywords[1000];
 
