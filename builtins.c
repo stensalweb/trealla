@@ -7725,15 +7725,14 @@ static int fn_findall_4(query *q)
 
 static void restore_db(module *m, FILE *fp)
 {
+	parser *p = create_parser(m);
+
 	for (;;) {
 		query *q = create_query(m, 0);
-		parser *p = create_parser(m);
 		p->one_shot = 1;
 		p->fp = fp;
 
 		if (getline(&p->save_line, &p->n_line, p->fp) == -1) {
-			free(p->save_line);
-			destroy_parser(p);
 			destroy_query(q);
 			break;
 		}
@@ -7743,10 +7742,11 @@ static void restore_db(module *m, FILE *fp)
 		parser_tokenize(p, 0, 0);
 		parser_xref(p, p->t, NULL);
 		query_execute(q, p->t);
-		free(p->save_line);
-		destroy_parser(p);
 		destroy_query(q);
 	}
+
+	free(p->save_line);
+	destroy_parser(p);
 }
 
 static int fn_db_load_0(query *q)
