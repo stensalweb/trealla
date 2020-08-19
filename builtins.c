@@ -5062,9 +5062,9 @@ static int fn_sys_assertz_2(query *q)
 	return do_assertz_2(q);
 }
 
-static void save_db(FILE *fp, query *q, int dq)
+static void save_db(FILE *fp, query *q, module *m, int dq)
 {
-	for (rule *h = q->m->head; h; h = h->next) {
+	for (rule *h = m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5080,8 +5080,8 @@ static void save_db(FILE *fp, query *q, int dq)
 
 static int fn_listing_0(query *q)
 {
-	module *m = q->st.curr_clause->m;
-	save_db(stdout, q, m->dq);
+	module *m = q->st.curr_clause ? q->st.curr_clause->m : q->m;
+	save_db(stdout, q, m, m->dq);
 	return 1;
 }
 
@@ -7760,9 +7760,17 @@ static void restore_db(module *m, FILE *fp)
 static int fn_db_load_0(query *q)
 {
 	module *m = q->st.curr_clause->m;
+
 	char filename[1024];
-	struct stat st;
 	snprintf(filename, sizeof(filename), "%s.db", m->name);
+	char filename2[1024];
+	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
+	struct stat st;
+
+	if (!stat(filename2, &st) && !stat(filename, &st))
+		remove(filename2);
+	else if (!stat(filename2, &st))
+		rename(filename2, filename);
 
 	if (!stat(filename, &st)) {
 		FILE *fp = fopen(filename, "rb");
@@ -7772,6 +7780,24 @@ static int fn_db_load_0(query *q)
 
 	m->fp = fopen(filename, "ab");
 	return 1;
+}
+
+static int fn_db_save_0(query *q)
+{
+	module *m = q->st.curr_clause->m;
+	fsync(fileno(m->fp));
+	fclose(m->fp);
+	char filename[1024];
+	snprintf(filename, sizeof(filename), "%s.db", m->name);
+	char filename2[1024];
+	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
+	FILE *fp = fopen(filename2, "wb");
+	save_db(stdout, q, m, m->dq);
+	fclose(fp);
+	remove(filename);
+	rename(filename2, filename);
+	m->fp = fopen(filename, "ab");
+	return 0;
 }
 
 static int fn_module_1(query *q)
@@ -8088,7 +8114,9 @@ static const struct builtins g_other_funcs[] =
 	{"a_", 2, fn_sys_asserta_2, "+term,+ref"},
 	{"z_", 2, fn_sys_assertz_2, "+term,+ref"},
 	{"e_", 2, fn_erase_1, "+ref"},
+
 	{"db_load", 0, fn_db_load_0, NULL},
+	{"db_save", 0, fn_db_save_0, NULL},
 
 	{0}
 };
