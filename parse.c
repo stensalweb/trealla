@@ -490,8 +490,11 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 	t->cidx = 0;
 	uuid_gen(&r->u);
 
-	if (!m->loading)
+	if (!m->loading && (h->flags&FLAG_RULE_PERSIST))
 		db_log(m, r, LOG_ASSERTA);
+
+	if (h->flags&FLAG_RULE_PERSIST)
+		r->t.persist = 1;
 
 	return r;
 }
@@ -549,8 +552,11 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 	t->cidx = 0;
 	uuid_gen(&r->u);
 
-	if (!m->loading)
+	if (!m->loading && (h->flags&FLAG_RULE_PERSIST))
 		db_log(m, r, LOG_ASSERTZ);
+
+	if (h->flags&FLAG_RULE_PERSIST)
+		r->t.persist = 1;
 
 	return r;
 }
@@ -560,7 +566,7 @@ void retract_from_db(module *m, clause *r)
 	r->t.deleted = 1;
 	m->dirty = 1;
 
-	if (!m->loading)
+	if (!m->loading && r->t.persist)
 		db_log(m, r, LOG_ERASE);
 }
 
@@ -604,7 +610,7 @@ int erase_from_db(module *m, uuid *ref)
 
 	r->t.deleted = 1;
 
-	if (!m->loading)
+	if (!m->loading && r->t.persist)
 		db_log(m, r, LOG_ERASE);
 
 	return 1;

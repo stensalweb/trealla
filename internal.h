@@ -140,7 +140,7 @@ struct cell_ {
 
 typedef struct {
 	idx_t nbr_cells, cidx;
-	uint8_t nbr_vars, first_cut, cut_only, deleted;
+	uint8_t nbr_vars, first_cut, cut_only, deleted, persist;
 	cell cells[];
 } term;
 
