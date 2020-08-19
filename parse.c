@@ -434,51 +434,6 @@ static int compkey(const void *ptr1, const void *ptr2)
 	return 0;
 }
 
-enum log_type { LOG_ASSERTA=1, LOG_ASSERTZ=2, LOG_ERASE=3 };
-
-static void db_log(module *m, clause *r, enum log_type l)
-{
-	static int s_quiet = 5;
-
-	switch(l) {
-		case LOG_ASSERTA:
-		{
-			size_t len = write_term_to_buf(NULL, NULL, 0, r->t.cells, 1, 0, 0, 0, 0);
-			char *dst = malloc(len+1);
-			write_term_to_buf(NULL, dst, len+1, r->t.cells, 1, 0, 0, 0, 0);
-			char tmpbuf2[80];
-			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
-			fprintf(m->fp, "a_(%s,'%s').\n", dst, tmpbuf2);
-			free(dst);
-			break;
-		}
-		case LOG_ASSERTZ:
-		{
-			size_t len = write_term_to_buf(NULL, NULL, 0, r->t.cells, 1, 0, 0, 0, 0);
-			char *dst = malloc(len+1);
-			write_term_to_buf(NULL, dst, len+1, r->t.cells, 1, 0, 0, 0, 0);
-			char tmpbuf2[80];
-			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
-			fprintf(m->fp, "z_(%s,'%s').\n", dst, tmpbuf2);
-			free(dst);
-			break;
-		}
-		case LOG_ERASE:
-		{
-			char tmpbuf[256], tmpbuf2[80];
-			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
-			int len = snprintf(tmpbuf, sizeof(tmpbuf), "e_('%s').\n", tmpbuf2);
-
-			if (fwrite(tmpbuf, len, 1, m->fp) <= 0) {
-				if (s_quiet-- > 0)
-					fprintf(stderr, "Error: db_log write error '%s'\n", strerror(errno));
-			}
-
-			break;
-		}
-	}
-}
-
 clause *asserta_to_db(module *m, term *t, int consulting)
 {
 	cell *c = get_head(m, t->cells);
@@ -529,9 +484,6 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 
 	t->cidx = 0;
 	uuid_gen(&r->u);
-
-	if (!m->loading && (h->flags&FLAG_RULE_PERSIST))
-		db_log(m, r, LOG_ASSERTA);
 
 	if (h->flags&FLAG_RULE_PERSIST)
 		r->t.persist = 1;
@@ -592,41 +544,17 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 	t->cidx = 0;
 	uuid_gen(&r->u);
 
-	if (!m->loading && (h->flags&FLAG_RULE_PERSIST))
-		db_log(m, r, LOG_ASSERTZ);
-
 	if (h->flags&FLAG_RULE_PERSIST)
 		r->t.persist = 1;
 
 	return r;
 }
 
-void retract_from_db(module *m, clause *r)
+clause *retract_from_db(module *m, clause *r)
 {
 	r->t.deleted = 1;
 	m->dirty = 1;
-
-	if (!m->loading && r->t.persist)
-		db_log(m, r, LOG_ERASE);
-}
-
-int abolish_from_db(module *m, cell *c)
-{
-	rule *h = find_match(m, c);
-
-	if (h) {
-		if (!(h->flags&FLAG_RULE_DYNAMIC)) {
-			fprintf(stderr, "Error: not dynamic '%s/%u'\n", GET_STR(c), c->arity);
-			return 0;
-		}
-
-		for (clause *r = h->head ; r; r = r->next)
-			retract_from_db(m, r);
-
-		h->flags = 0;
-	}
-
-	return 1;
+	return r;
 }
 
 clause *find_in_db(module *m, uuid *ref)
@@ -641,19 +569,12 @@ clause *find_in_db(module *m, uuid *ref)
 	return NULL;
 }
 
-int erase_from_db(module *m, uuid *ref)
+clause *erase_from_db(module *m, uuid *ref)
 {
 	clause *r = find_in_db(m, ref);
-
-	if (!r)
-		return 0;
-
+	if (!r) return 0;
 	r->t.deleted = 1;
-
-	if (!m->loading && r->t.persist)
-		db_log(m, r, LOG_ERASE);
-
-	return 1;
+	return r;
 }
 
 static void set_dynamic_in_db(module *m, const char *name, idx_t arity)
