@@ -603,6 +603,10 @@ int erase_from_db(module *m, uuid *ref)
 		return 0;
 
 	r->t.deleted = 1;
+
+	if (!m->loading)
+		db_log(m, r, LOG_ERASE);
+
 	return 1;
 }
 
