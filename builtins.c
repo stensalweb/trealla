@@ -5071,13 +5071,16 @@ static void save_db(FILE *fp, query *q, int dq)
 
 static int fn_listing_0(query *q)
 {
-	save_db(stdout, q, q->m->dq);
+	module *m = q->st.curr_clause->m;
+	save_db(stdout, q, m->dq);
 	return 1;
 }
 
-static void save_name(FILE *fp, query *q, idx_t name, unsigned arity, int dq)
+static void save_name(FILE *fp, query *q, idx_t name, unsigned arity)
 {
-	for (rule *h = q->m->head; h; h = h->next) {
+	module *m = q->st.curr_clause->m;
+
+	for (rule *h = m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5091,7 +5094,7 @@ static void save_name(FILE *fp, query *q, idx_t name, unsigned arity, int dq)
 			if (r->t.deleted)
 				continue;
 
-			write_term(q, fp, r->t.cells, 0, dq, 0, 0, 0);
+			write_term(q, fp, r->t.cells, 0, m->dq, 0, 0, 0);
 			fprintf(fp, ".\n");
 		}
 	}
@@ -5102,7 +5105,7 @@ static int fn_listing_1(query *q)
 	GET_FIRST_ARG(p1,literal);
 	idx_t name = p1->val_offset;
 	unsigned arity = -1;
-	save_name(stdout, q, name, arity, q->m->dq);
+	save_name(stdout, q, name, arity);
 	return 1;
 }
 
