@@ -2668,45 +2668,15 @@ int deconsult(const char *filename)
 	return 1;
 }
 
-int get_halt(prolog *pl)
-{
-	return pl->m->halt;
-}
+int get_halt(prolog *pl) { return pl->m->halt; }
+int get_halt_code(prolog *pl) { return pl->m->halt_code; }
+int get_status(prolog *pl) { return pl->m->status; }
 
-int get_halt_code(prolog *pl)
-{
-	return pl->m->halt_code;
-}
-
-int get_status(prolog *pl)
-{
-	return pl->m->status;
-}
-
-void set_trace(prolog *pl)
-{
-	pl->m->trace = 1;
-}
-
-void set_quiet(prolog *pl)
-{
-	pl->m->quiet = 1;
-}
-
-void set_stats(prolog *pl)
-{
-	pl->m->stats = 1;
-}
-
-void set_iso_only(prolog *pl)
-{
-	pl->m->iso_only = 1;
-}
-
-void set_opt(prolog *pl, int level)
-{
-	pl->m->opt = level;
-}
+void set_trace(prolog *pl) { pl->m->trace = 1; }
+void set_quiet(prolog *pl) { pl->m->quiet = 1; }
+void set_stats(prolog *pl) { pl->m->stats = 1; }
+void set_iso_only(prolog *pl) { pl->m->iso_only = 1; }
+void set_opt(prolog *pl, int level) { pl->m->opt = level; }
 
 int pl_eval(prolog *pl, const char *src)
 {
