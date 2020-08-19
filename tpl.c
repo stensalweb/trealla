@@ -13,7 +13,7 @@
 #endif
 
 #include "history.h"
-#include "parse.h"
+#include "trealla.h"
 
 #ifdef _WIN32
 #include <windows.h>

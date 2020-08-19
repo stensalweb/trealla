@@ -20,7 +20,7 @@
 #define PATH_SEP "/"
 #endif
 
-#include "parse.h"
+#include "trealla.h"
 #include "internal.h"
 #include "network.h"
 #include "base64.h"
