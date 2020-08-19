@@ -87,6 +87,8 @@ GNU-Prolog & SWI-Prolog
 	name/2
 	maplist/1-4
 	tab/1-2
+	random/1                # random(-float) float [0.0,<1.0]
+	random/1                # random(+integer) function returning integer [0,<integer]
 
 
 GNU-Prolog
@@ -109,7 +111,6 @@ SWI-Prolog
 	is_list/1
 	term_hash/2
 	writeln/1
-	random/1
 	time/1
 	inf/0
 	nan/0
@@ -162,8 +163,6 @@ Others
 	now/0                   # function returning C-time in ms as integer
 	get_time/1              # get_time(-var) C-time in secs as float
 	srandom/1               # seed(+integer) seed random number generator
-	random/1                # random(-float) float [0.0,<1.0]
-	random/1                # random(+integer) function returning integer [0,<integer]
 	rand/0                  # function returning integer [0,RAND_MAX]
 	rand/1                  # integer(-integer) integer [0,RAND_MAX]
 	delay/1                 # delay(+integer) sleep for ms
