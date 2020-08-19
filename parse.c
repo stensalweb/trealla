@@ -437,6 +437,14 @@ enum log_type { LOG_ASSERTA=1, LOG_ASSERTZ=2, LOG_ERASE=3 };
 
 static void db_log(module *m, clause *r, enum log_type l)
 {
+	switch(l) {
+		case LOG_ASSERTA:
+			break;
+		case LOG_ASSERTZ:
+			break;
+		case LOG_ERASE:
+			break;
+	}
 }
 
 clause *asserta_to_db(module *m, term *t, int consulting)
