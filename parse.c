@@ -2651,6 +2651,9 @@ void destroy_module(module *m)
 			last = tmp;
 	}
 
+	if (m->fp)
+		fclose(m->fp);
+
 	free(m->filename);
 	destroy_parser(m->p);
 	free(m->name);
