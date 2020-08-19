@@ -5106,12 +5106,6 @@ static int fn_listing_1(query *q)
 	return 1;
 }
 
-static int fn_save_1(query *q)
-{
-	GET_FIRST_ARG(p1,atom);
-	return module_save_file(q->m, GET_STR(p1));
-}
-
 static int fn_sys_timer_0(query *q)
 {
 	q->time_started = gettimeofday_usec() / 1000;
@@ -7726,10 +7720,42 @@ static int fn_findall_4(query *q)
 	return 1;
 }
 
+static void restore_db(module *m, FILE *fp)
+{
+	parser *p = create_parser(m);
+	p->fp = fp;
+	int ok;
+
+	do {
+		if (getline(&p->save_line, &p->n_line, p->fp) == -1)
+			break;
+
+		p->srcptr = p->save_line;
+		printf("*** db: %s\n", p->save_line);
+		ok = parser_tokenize(p, 0, 0);
+	}
+	 while (ok);
+
+	free(p->save_line);
+	destroy_parser(p);
+}
+
 static int fn_dbs_load_0(query *q)
 {
-	printf("*** module '%s'\n", q->m->name);
-	return 0;
+	module *m = q->st.curr_clause->m;
+	char filename[1024];
+	struct stat st;
+
+	snprintf(filename, sizeof(filename), "%s.db", m->name);
+
+	if (!stat(filename, &st)) {
+		FILE *fp = fopen(filename, "rb");
+		restore_db(m, fp);
+		fclose(fp);
+	}
+
+	m->fp = fopen(filename, "ab");
+	return 1;
 }
 
 static int fn_module_1(query *q)
@@ -7994,7 +8020,6 @@ static const struct builtins g_other_funcs[] =
 	{"working_directory", 2, fn_working_directory_2, "-atom,+atom"},
 	{"chdir", 1, fn_chdir_1, "+atom"},
 	{"name", 2, fn_iso_atom_codes_2, "?atom,?list"},
-	{"save", 1, fn_save_1, "+atom"},
 	{"read_term_from_atom", 3, fn_read_term_from_atom_3, "+atom,-term,+list"},
 	{"write_term_to_atom", 3, fn_write_term_to_atom_3, "-atom,+term,+list"},
 	{"term_to_atom", 2, fn_term_to_atom_2, "+term,-atom"},

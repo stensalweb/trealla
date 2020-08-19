@@ -183,7 +183,6 @@ Others
 	sha1/2                  # sha1(?atom,?hash)        NEEDS OPENSSL
 	sha256/2                # sha256(?atom,?hash)      NEEDS OPENSSL
 	sha512/2                # sha512(?atom,?hash)      NEEDS OPENSSL
-	save/1                  # save(+filename)
 	persist/1               # a directive
 
 	dict:set/4              # set(+dict,+name,+value,-dict)

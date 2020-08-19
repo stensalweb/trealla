@@ -460,6 +460,7 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 		}
 	}
 
+
 	if (m->prebuilt)
 		h->flags |= FLAG_RULE_PREBUILT;
 
@@ -468,6 +469,7 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 	memcpy(&r->t, t, sizeof(term));
 	copy_cells(r->t.cells, t->cells, nbr_cells);
 	r->t.nbr_cells = nbr_cells;
+	r->m = m;
 	r->next = h->head;
 	h->head = r;
 
@@ -519,6 +521,7 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 	memcpy(&r->t, t, sizeof(term));
 	copy_cells(r->t.cells, t->cells, nbr_cells);
 	r->t.nbr_cells = nbr_cells;
+	r->m = m;
 
 	if (h->tail)
 		h->tail->next = r;
@@ -620,29 +623,6 @@ static void set_volatile_in_db(module *m, const char *name, unsigned arity)
 	rule *h = find_match(m, &tmp);
 	if (!h) return;
 	h->flags |= FLAG_RULE_VOLATILE;
-}
-
-static void module_save_fp(module *m, FILE *fp, int canonical, int dq)
-{
-	query q = {0};
-	q.m = m;
-
-	for (rule *h = m->head; h; h = h->next) {
-		if (h->flags&(FLAG_RULE_PREBUILT|FLAG_RULE_VOLATILE))
-			continue;
-
-		for (clause *r = h->head; r; r = r->next) {
-			if (r->t.deleted)
-				continue;
-
-			if (canonical)
-				write_canonical(&q, fp, r->t.cells, 0, dq, 0);
-			else
-				write_term(&q, fp, r->t.cells, 0, dq, 0, 0, 0);
-
-			fprintf(fp, "\n");
-		}
-	}
 }
 
 static void clear_term(term *t)
@@ -2521,6 +2501,29 @@ int module_load_file(module *m, const char *filename)
 	fclose(fp);
 
 	return ok;
+}
+
+static void module_save_fp(module *m, FILE *fp, int canonical, int dq)
+{
+	query q = {0};
+	q.m = m;
+
+	for (rule *h = m->head; h; h = h->next) {
+		if (h->flags&(FLAG_RULE_PREBUILT|FLAG_RULE_VOLATILE))
+			continue;
+
+		for (clause *r = h->head; r; r = r->next) {
+			if (r->t.deleted)
+				continue;
+
+			if (canonical)
+				write_canonical(&q, fp, r->t.cells, 0, dq, 0);
+			else
+				write_term(&q, fp, r->t.cells, 0, dq, 0, 0, 0);
+
+			fprintf(fp, "\n");
+		}
+	}
 }
 
 int module_save_file(module *m, const char *filename)

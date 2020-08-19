@@ -150,6 +150,7 @@ typedef struct {
 
 struct clause_ {
 	clause *next;
+	module *m;
 	uuid u;
 	term t;
 };
