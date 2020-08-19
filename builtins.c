@@ -7726,6 +7726,11 @@ static int fn_findall_4(query *q)
 	return 1;
 }
 
+static int fn_dbs_load_0(query *q)
+{
+	return 0;
+}
+
 static int fn_module_1(query *q)
 {
 	GET_FIRST_ARG(p1,atom);
@@ -8041,6 +8046,7 @@ static const struct builtins g_other_funcs[] =
 	{"$a", 2, fn_sys_asserta_2, "+term,+ref"},
 	{"$z", 2, fn_sys_assertz_2, "+term,+ref"},
 	{"$e", 2, fn_erase_1, "+ref"},
+	{"dbs_load", 0, fn_dbs_load_0, NULL},
 
 	{0}
 };
