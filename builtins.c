@@ -723,7 +723,7 @@ static int fn_iso_current_rule_1(query *q)
 		char tmpbuf1[256], tmpbuf2[256];
 		tmpbuf1[0] = tmpbuf2[0] = '\0';
 		sscanf(functor, "%255[^:]:%255s", tmpbuf1, tmpbuf2);
-		tmpbuf1[255] = tmpbuf2[255] = '\0';
+		tmpbuf1[sizeof(tmpbuf1)-1] = tmpbuf2[sizeof(tmpbuf2)-1] = '\0';
 		m = find_module(tmpbuf1);
 	}
 
@@ -7728,6 +7728,7 @@ static int fn_findall_4(query *q)
 
 static int fn_dbs_load_0(query *q)
 {
+	printf("*** module '%s'\n", q->m->name);
 	return 0;
 }
 

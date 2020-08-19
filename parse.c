@@ -1096,7 +1096,7 @@ int parser_xref(parser *p, term *t, rule *parent)
 			char tmpbuf1[256], tmpbuf2[256];
 			tmpbuf1[0] = tmpbuf2[0] = '\0';
 			sscanf(functor, "%255[^:]:%255s", tmpbuf1, tmpbuf2);
-			tmpbuf1[255] = tmpbuf2[255] = '\0';
+			tmpbuf1[sizeof(tmpbuf1)-1] = tmpbuf2[sizeof(tmpbuf2)-1] = '\0';
 			m = find_module(tmpbuf1);
 
 			if (m)
