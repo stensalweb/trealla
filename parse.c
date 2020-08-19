@@ -433,6 +433,12 @@ static int compkey(const void *ptr1, const void *ptr2)
 	return 0;
 }
 
+enum log_type { LOG_ASSERTA=1, LOG_ASSERTZ=2, LOG_ERASE=3 };
+
+static void db_log(module *m, clause *r, enum log_type l)
+{
+}
+
 clause *asserta_to_db(module *m, term *t, int consulting)
 {
 	cell *c = get_head(m, t->cells);
@@ -481,8 +487,12 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 		sl_set(h->index, c, r);
 	}
 
-	uuid_gen(&r->u);
 	t->cidx = 0;
+	uuid_gen(&r->u);
+
+	if (!m->loading)
+		db_log(m, r, LOG_ASSERTA);
+
 	return r;
 }
 
@@ -536,8 +546,12 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 		sl_app(h->index, c, r);
 	}
 
-	uuid_gen(&r->u);
 	t->cidx = 0;
+	uuid_gen(&r->u);
+
+	if (!m->loading)
+		db_log(m, r, LOG_ASSERTZ);
+
 	return r;
 }
 
@@ -545,6 +559,9 @@ void retract_from_db(module *m, clause *r)
 {
 	r->t.deleted = 1;
 	m->dirty = 1;
+
+	if (!m->loading)
+		db_log(m, r, LOG_ERASE);
 }
 
 int abolish_from_db(module *m, cell *c)

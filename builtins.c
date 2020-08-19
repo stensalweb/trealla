@@ -3928,7 +3928,8 @@ static int fn_iso_retract_1(query *q)
 	if (!do_match(q, p1))
 		return 0;
 
-	retract_from_db(q->m, q->st.curr_clause);
+	module *m = q->st.curr_clause->m;
+	retract_from_db(m, q->st.curr_clause);
 	return 1;
 }
 
@@ -3989,10 +3990,13 @@ static int fn_iso_asserta_1(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
+	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	return asserta_to_db(q->m, p->t, 0) ? 1 : 0;
+	clause *r = asserta_to_db(m, p->t, 0);
+	if (!r) return 0;
+	return 1;
 }
 
 static int fn_iso_assertz_1(query *q)
@@ -4007,10 +4011,13 @@ static int fn_iso_assertz_1(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
+	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	return assertz_to_db(q->m, p->t, 0) ? 1 : 0;
+	clause *r = assertz_to_db(m, p->t, 0);
+	if (!r) return 0;
+	return 1;
 }
 
 int call_me(query *q, cell *p1, idx_t p1_ctx)
@@ -4972,10 +4979,11 @@ static int do_asserta_2(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
+	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	clause *r = asserta_to_db(q->m, p->t, 0);
+	clause *r = asserta_to_db(m, p->t, 0);
 	if (!r) return 0;
 
 	if (!is_var(p2)) {
@@ -5019,10 +5027,11 @@ static int do_assertz_2(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
+	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	clause *r = assertz_to_db(q->m, p->t, 0);
+	clause *r = assertz_to_db(m, p->t, 0);
 	if (!r) return 0;
 
 	if (!is_var(p2)) {
@@ -7729,6 +7738,7 @@ static void restore_db(module *m, FILE *fp)
 	query *q = create_query(m, 0);
 	p->one_shot = 1;
 	p->fp = fp;
+	m->loading = 1;
 
 	for (;;) {
 		if (getline(&p->save_line, &p->n_line, p->fp) == -1)
@@ -7741,6 +7751,7 @@ static void restore_db(module *m, FILE *fp)
 		clear_term(p->t);
 	}
 
+	m->loading = 0;
 	destroy_query(q);
 	free(p->save_line);
 	destroy_parser(p);
@@ -7751,7 +7762,6 @@ static int fn_db_load_0(query *q)
 	module *m = q->st.curr_clause->m;
 	char filename[1024];
 	struct stat st;
-
 	snprintf(filename, sizeof(filename), "%s.db", m->name);
 
 	if (!stat(filename, &st)) {
