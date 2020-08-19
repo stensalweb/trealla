@@ -7722,25 +7722,31 @@ static int fn_findall_4(query *q)
 
 static void restore_db(module *m, FILE *fp)
 {
-	parser *p = create_parser(m);
-	p->fp = fp;
-	int ok;
+	for (;;) {
+		query *q = create_query(m, 0);
+		parser *p = create_parser(m);
+		p->one_shot = 1;
+		p->fp = fp;
 
-	do {
-		if (getline(&p->save_line, &p->n_line, p->fp) == -1)
+		if (getline(&p->save_line, &p->n_line, p->fp) == -1) {
+			free(p->save_line);
+			destroy_parser(p);
+			destroy_query(q);
 			break;
+		}
 
 		p->srcptr = p->save_line;
-		printf("*** db: %s\n", p->save_line);
-		ok = parser_tokenize(p, 0, 0);
+		printf("*** db: %s", p->save_line);
+		parser_tokenize(p, 0, 0);
+		parser_xref(p, p->t, NULL);
+		query_execute(q, p->t);
+		free(p->save_line);
+		destroy_parser(p);
+		destroy_query(q);
 	}
-	 while (ok);
-
-	free(p->save_line);
-	destroy_parser(p);
 }
 
-static int fn_dbs_load_0(query *q)
+static int fn_db_load_0(query *q)
 {
 	module *m = q->st.curr_clause->m;
 	char filename[1024];
@@ -8069,10 +8075,10 @@ static const struct builtins g_other_funcs[] =
 
 	// To be used for database log
 
-	{"$a", 2, fn_sys_asserta_2, "+term,+ref"},
-	{"$z", 2, fn_sys_assertz_2, "+term,+ref"},
-	{"$e", 2, fn_erase_1, "+ref"},
-	{"dbs_load", 0, fn_dbs_load_0, NULL},
+	{"a_", 2, fn_sys_asserta_2, "+term,+ref"},
+	{"z_", 2, fn_sys_assertz_2, "+term,+ref"},
+	{"e_", 2, fn_erase_1, "+ref"},
+	{"db_load", 0, fn_db_load_0, NULL},
 
 	{0}
 };

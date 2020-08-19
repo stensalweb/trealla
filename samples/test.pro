@@ -159,8 +159,7 @@ test18b :- assertz(f18(123),_), clause(f18(_),_,_).
 :-use_module(library(auth)).
 
 test40 :-
-	auth:init,
-	writeln(done).
+	auth:init.
 
 task50(T) :-
 	between(1,inf,_),

@@ -16,7 +16,7 @@
 static int needs_quote(module *m, const char *src)
 {
 	if (!strcmp(src, ",") || !strcmp(src, ".") || !strcmp(src, "|") ||
-		!*src || isupper(*src) || (*src == '_'))
+		!*src || isupper(*src))
 		return 1;
 
 	if (!strcmp(src, "[]") || !strcmp(src, "!"))
@@ -28,7 +28,7 @@ static int needs_quote(module *m, const char *src)
 	while (*src) {
 		int ch = get_char_utf8(&src);
 
-		if (iscntrl(ch) || isspace(ch) || ispunct(ch))
+		if ((iscntrl(ch) || isspace(ch) || ispunct(ch)) && (ch != '_'))
 			return 1;
 	}
 
