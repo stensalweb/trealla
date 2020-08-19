@@ -161,10 +161,11 @@ Others
 	log10/1                 # function returning log10 of arg
 	now/0                   # function returning C-time in ms as integer
 	get_time/1              # get_time(-var) C-time in secs as float
-	random/1                # random(+integer) function returning integer
-	rand/0                  # function returning integer between [0,RAND_MAX]
-	rand/1                  # integer(-integer) between [0,RAND_MAX]
-	srandom/1               # seed random generator
+	srandom/1               # seed(+integer) seed random number generator
+	random/1                # random(-float) float [0.0,<1.0]
+	random/1                # random(+integer) function returning integer [0,<integer]
+	rand/0                  # function returning integer [0,RAND_MAX]
+	rand/1                  # integer(-integer) integer [0,RAND_MAX]
 	delay/1                 # delay(+integer) sleep for ms
 	loadfile/2              # loadfile(+filename,-atom)
 	savefile/2              # savefile(+filename,+atom)
