@@ -6249,7 +6249,14 @@ static int fn_srandom_1(query *q)
 
 static int fn_random_1(query *q)
 {
-	GET_FIRST_ARG(p1,integer);
+	GET_FIRST_ARG(p1,integer_or_var);
+
+	if (is_var(p1)) {
+		cell tmp;
+		make_float(&tmp, ((double)random())/UINT32_MAX);
+		set_var(q, p1, p1_ctx, &tmp, q->st.curr_frame);
+		return 1;
+	}
 
 	if (p1->val_int < 1) {
 		throw_error(q, p1, "domain_error", "positive_integer");
@@ -6258,6 +6265,22 @@ static int fn_random_1(query *q)
 
 	q->accum.val_type = TYPE_INT;
 	q->accum.val_int = llabs(random()%p1->val_int);
+	return 1;
+}
+
+static int fn_rand_0(query *q)
+{
+	q->accum.val_type = TYPE_INT;
+	q->accum.val_int = random()%RAND_MAX;
+	return 1;
+}
+
+static int fn_rand_1(query *q)
+{
+	GET_FIRST_ARG(p1,var);
+	cell tmp;
+	make_int(&tmp, random()%RAND_MAX);
+	set_var(q, p1, p1_ctx, &tmp, q->st.curr_frame);
 	return 1;
 }
 
@@ -7935,7 +7958,9 @@ static const struct builtins g_other_funcs[] =
 	{"delay", 1, fn_delay_1, "+integer"},
 	{"now", 0, fn_now_0, NULL},
 	{"get_time", 1, fn_get_time_1, "-var"},
-	{"random", 1, fn_random_1, "+integer"},
+	{"random", 1, fn_random_1, "?integer"},
+	{"rand", 1, fn_rand_1, "?integer"},
+	{"rand", 0, fn_rand_0, NULL},
 	{"srandom", 1, fn_srandom_1, "+integer"},
 	{"between", 3, fn_between_3, "+integer,+integer,-integer"},
 	{"log10", 1, fn_log10_1, "+integer"},

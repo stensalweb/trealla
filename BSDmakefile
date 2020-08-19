@@ -12,7 +12,7 @@ USE_SSL = 0
 OBJECTS = tpl.o history.o builtins.o library.o \
 	parse.o print.o runtime.o \
 	skiplist.o base64.o network.o utf8.o\
-	lists.o dict.o apply.o http.o
+	lists.o dict.o apply.o http.o auth.o
 
 PL = ./tpl
 
@@ -79,3 +79,6 @@ apply.o: library/apply.pro
 
 http.o: library/http.pro
 	$(LD) -m elf_x86_64 -r -b binary -o http.o library/http.pro
+
+auth.o: library/auth.pro
+	$(LD) -r -b binary -o auth.o library/auth.pro

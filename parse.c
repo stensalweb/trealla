@@ -2519,6 +2519,7 @@ int module_load_file(module *m, const char *filename)
 	m->filename = strdup(filename);
 	int ok = module_load_fp(m, fp);
 	fclose(fp);
+
 	return ok;
 }
 

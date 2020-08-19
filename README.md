@@ -160,7 +160,10 @@ Others
 	atom_octal/2            # unify atom (in octal) with number
 	log10/1                 # function returning log10 of arg
 	now/0                   # function returning C-time in ms as integer
-	get_time/1              # function returning C-time in secs as float
+	get_time/1              # get_time(-var) C-time in secs as float
+	random/1                # random(+integer) function returning integer
+	rand/0                  # function returning integer between [0,RAND_MAX]
+	rand/1                  # integer(-integer) between [0,RAND_MAX]
 	srandom/1               # seed random generator
 	delay/1                 # delay(+integer) sleep for ms
 	loadfile/2              # loadfile(+filename,-atom)
