@@ -7727,11 +7727,10 @@ static void restore_db(module *m, FILE *fp)
 {
 	parser *p = create_parser(m);
 	query *q = create_query(m, 0);
+	p->one_shot = 1;
+	p->fp = fp;
 
 	for (;;) {
-		p->one_shot = 1;
-		p->fp = fp;
-
 		if (getline(&p->save_line, &p->n_line, p->fp) == -1)
 			break;
 
