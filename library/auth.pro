@@ -15,7 +15,7 @@
 :- dynamic auth_session/2.
 
 init :-
-	db_load, listing(fun).
+	db_load.
 
 adduser(User, Pass) :-
     rand(Salt),

@@ -7726,25 +7726,23 @@ static int fn_findall_4(query *q)
 static void restore_db(module *m, FILE *fp)
 {
 	parser *p = create_parser(m);
+	query *q = create_query(m, 0);
 
 	for (;;) {
-		query *q = create_query(m, 0);
 		p->one_shot = 1;
 		p->fp = fp;
 
-		if (getline(&p->save_line, &p->n_line, p->fp) == -1) {
-			destroy_query(q);
+		if (getline(&p->save_line, &p->n_line, p->fp) == -1)
 			break;
-		}
 
 		p->srcptr = p->save_line;
-		printf("*** db: %s", p->save_line);
 		parser_tokenize(p, 0, 0);
 		parser_xref(p, p->t, NULL);
 		query_execute(q, p->t);
-		destroy_query(q);
+		clear_term(p->t);
 	}
 
+	destroy_query(q);
 	free(p->save_line);
 	destroy_parser(p);
 }

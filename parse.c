@@ -625,7 +625,7 @@ static void set_volatile_in_db(module *m, const char *name, unsigned arity)
 	h->flags |= FLAG_RULE_VOLATILE;
 }
 
-static void clear_term(term *t)
+void clear_term(term *t)
 {
 	for (idx_t i = 0; i < t->cidx; i++) {
 		cell *c = t->cells + i;
