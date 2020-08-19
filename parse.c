@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <sys/time.h>
+#include <sys/errno.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -437,13 +438,44 @@ enum log_type { LOG_ASSERTA=1, LOG_ASSERTZ=2, LOG_ERASE=3 };
 
 static void db_log(module *m, clause *r, enum log_type l)
 {
+	static int s_quiet = 5;
+
 	switch(l) {
 		case LOG_ASSERTA:
+		{
+			size_t len = write_term_to_buf(NULL, NULL, 0, r->t.cells, 1, 0, 0, 0, 0);
+			char *dst = malloc(len+1);
+			write_term_to_buf(NULL, dst, len+1, r->t.cells, 1, 0, 0, 0, 0);
+			char tmpbuf2[80];
+			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
+			fprintf(m->fp, "a_(%s,'%s').\n", dst, tmpbuf2);
+			free(dst);
 			break;
+		}
 		case LOG_ASSERTZ:
+		{
+			size_t len = write_term_to_buf(NULL, NULL, 0, r->t.cells, 1, 0, 0, 0, 0);
+			char *dst = malloc(len+1);
+			write_term_to_buf(NULL, dst, len+1, r->t.cells, 1, 0, 0, 0, 0);
+			char tmpbuf2[80];
+			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
+			fprintf(m->fp, "z_(%s,'%s').\n", dst, tmpbuf2);
+			free(dst);
 			break;
+		}
 		case LOG_ERASE:
+		{
+			char tmpbuf[256], tmpbuf2[80];
+			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
+			int len = snprintf(tmpbuf, sizeof(tmpbuf), "e_('%s').\n", tmpbuf2);
+
+			if (fwrite(tmpbuf, len, 1, m->fp) <= 0) {
+				if (s_quiet-- > 0)
+					fprintf(stderr, "Error: db_log write error '%s'\n", strerror(errno));
+			}
+
 			break;
+		}
 	}
 }
 
