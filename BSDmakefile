@@ -81,4 +81,4 @@ http.o: library/http.pro
 	$(LD) -m elf_x86_64 -r -b binary -o http.o library/http.pro
 
 auth.o: library/auth.pro
-	$(LD) -r -b binary -o auth.o library/auth.pro
+	$(LD) -m elf_x86_64 -r -b binary -o auth.o library/auth.pro
