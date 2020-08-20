@@ -4,7 +4,7 @@
 	setuser_email/2, getuser_email/2,
 	setuser_nick/2, getuser_nick/2,
 	setuser_locked/2, getuser_locked/2,
-	setuser_pass/2, getuser_uuid/2,
+	setuser_pass/2,
 	session_set/3, session_get/3
 	]).
 
@@ -21,13 +21,11 @@ adduser(User, Pass) :-
 	now(Now),
 	dict:set([], created, Now, D0),
 	(var(R) -> dict:set(D0, nick,User,D1) ; dict:set(D0, email, User, D1)),
-	uuid(Uuid),
 	dict:set(D1, modified, Now, D2),
 	dict:set(D2, salt, Salt, D3),
 	dict:set(D3, hash, Hash, D4),
-	dict:set(D4, uuid, Uuid, D5),
 	\+ auth_user(User,_),
-	assertz(auth_user(User, D5)).
+	assertz(auth_user(User, D4)).
 
 deluser(User) :-
 	retract(auth_user(User, D)),
@@ -117,10 +115,6 @@ setuser_pass(User, Pass) :-
 	dict:set(D1, salt, Salt, D2),
 	dict:set(D2, modified, Now, D3),
 	assertz(auth_user(User, D3)).
-
-getuser_uuid(User, Uuid) :-
-	auth_user(User, D),
-	dict:get(D, uuid, Uuid).
 
 session_set(SessId, Name, Value) :-
 	retract(auth_session(SessId, D)),
