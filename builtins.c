@@ -5153,12 +5153,12 @@ static int fn_sys_assertz_2(query *q)
 	return do_assertz_2(q);
 }
 
-static void save_db(FILE *fp, query *q, module *m, int dq)
+static void save_db(FILE *fp, query *q, int dq)
 {
 	int save = q->quoted;
 	q->quoted = 2;
 
-	for (rule *h = m->head; h; h = h->next) {
+	for (rule *h = q->m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5176,8 +5176,7 @@ static void save_db(FILE *fp, query *q, module *m, int dq)
 
 static int fn_listing_0(query *q)
 {
-	module *m = q->st.curr_clause ? q->st.curr_clause->m : q->m;
-	save_db(stdout, q, m, m->dq);
+	save_db(stdout, q, q->m->dq);
 	return 1;
 }
 
@@ -7871,12 +7870,13 @@ static void restore_db(module *m, FILE *fp)
 
 static int fn_db_load_0(query *q)
 {
-	module *m = q->st.curr_clause->m;
+	//if (!q->m->use_persist)
+	//	return 1;
 
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", m->name);
+	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
 	struct stat st;
 
 	if (!stat(filename2, &st) && !stat(filename, &st))
@@ -7886,29 +7886,28 @@ static int fn_db_load_0(query *q)
 
 	if (!stat(filename, &st)) {
 		FILE *fp = fopen(filename, "rb");
-		restore_db(m, fp);
+		restore_db(q->m, fp);
 		fclose(fp);
 	}
 
-	m->fp = fopen(filename, "ab");
+	q->m->fp = fopen(filename, "ab");
 	return 1;
 }
 
 static int fn_db_save_0(query *q)
 {
-	module *m = q->st.curr_clause->m;
-	fsync(fileno(m->fp));
-	fclose(m->fp);
+	fsync(fileno(q->m->fp));
+	fclose(q->m->fp);
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", m->name);
+	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
 	FILE *fp = fopen(filename2, "wb");
-	save_db(stdout, q, m, m->dq);
+	save_db(stdout, q, q->m->dq);
 	fclose(fp);
 	remove(filename);
 	rename(filename2, filename);
-	m->fp = fopen(filename, "ab");
+	q->m->fp = fopen(filename, "ab");
 	return 0;
 }
 
