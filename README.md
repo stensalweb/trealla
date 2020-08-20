@@ -9,8 +9,9 @@ Written in plain-old C.
 	Rationals are a native type
 	Atoms are UTF-8 of unlimited length
 	Arity limit 255
-	REPL with history
 	Full-term indexing
+	Peristence to per-module database
+	REPL with history
 	MIT licensed
 
 
@@ -184,7 +185,8 @@ Others
 	sha1/2                  # sha1(?atom,?hash)        NEEDS OPENSSL
 	sha256/2                # sha256(?atom,?hash)      NEEDS OPENSSL
 	sha512/2                # sha512(?atom,?hash)      NEEDS OPENSSL
-	persist/1               # a directive
+
+	persist/1               # directive 'persist funct/arity'
 
 	dict:set/4              # set(+dict,+name,+value,-dict)
 	dict:del/3              # del(+dict,+name,-dict)
@@ -215,9 +217,7 @@ Persistence			##TO-DO##
 ===========
 
 Declaring something dynamic with the *persist* directive causes that
-rule to be saved to a per-module database. That database is also
-automatically loaded with the module. Changes are recorded in a
-transaction log as they happen.
+clause to be saved to a per-module database.
 
 
 Coroutines
