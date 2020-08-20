@@ -796,7 +796,7 @@ static void consultall(parser *p, cell *l)
 	}
 }
 
-static int module_load_text(module *m, const char *src);
+static module *module_load_text(module *m, const char *src);
 
 static void directives(parser *p, term *t)
 {
@@ -881,6 +881,7 @@ static void directives(parser *p, term *t)
 			module *m;
 
 			if ((m = find_module(name)) != NULL) {
+
 				if (!m->fp)
 					do_db_load(m);
 
@@ -892,9 +893,9 @@ static void directives(parser *p, term *t)
 					continue;
 
 				char *src = strndup((const char*)lib->start, (lib->end-lib->start));
-				module_load_text(p->m, src);
+				m = module_load_text(p->m, src);
 				free(src);
-				do_db_load(p->m);
+				do_db_load(m);
 				return;
 			}
 
@@ -902,10 +903,6 @@ static void directives(parser *p, term *t)
 		}
 
 		module_load_file(p->m, name);
-
-		if (!p->m->fp)
-			do_db_load(p->m);
-
 		return;
 	}
 
@@ -2386,12 +2383,12 @@ static int parser_run(parser *p, const char *src, int dump)
 	return ok;
 }
 
-static int module_load_text(module *m, const char *src)
+static module *module_load_text(module *m, const char *src)
 {
 	parser *p = create_parser(m);
 	p->consulting = 1;
 	p->srcptr = (char*)src;
-	int ok = parser_tokenize(p, 0, 0);
+	parser_tokenize(p, 0, 0);
 
 	if (!p->error && !p->end_of_term && p->t->cidx) {
 		fprintf(stderr, "Error: incomplete statement\n");
@@ -2413,10 +2410,8 @@ static int module_load_text(module *m, const char *src)
 		p->m->quiet = save;
 	}
 
-	ok = !p->error;
-	int halt = p->m->halt;
 	destroy_parser(p);
-	return ok && !halt;
+	return p->m;
 }
 
 int module_load_fp(module *m, FILE *fp)
