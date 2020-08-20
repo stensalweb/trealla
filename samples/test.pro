@@ -164,6 +164,8 @@ test40 :-
 	auth:adduser(user2,pass2),
 	auth:dumpusers,
 	true.
+test40 :-
+	writeln('OOPS already exists').
 
 task50(T) :-
 	between(1,inf,_),
