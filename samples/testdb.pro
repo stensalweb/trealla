@@ -15,4 +15,5 @@ test2 :-
 	writeln('OOPS already exists').
 
 test3 :-
-	auth:dumpusers.
+	auth:listusers(L),
+	maplist(writeln,L).

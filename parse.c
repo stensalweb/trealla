@@ -881,7 +881,6 @@ static void directives(parser *p, term *t)
 			module *m;
 
 			if ((m = find_module(name)) != NULL) {
-
 				if (!m->fp)
 					do_db_load(m);
 
@@ -895,7 +894,10 @@ static void directives(parser *p, term *t)
 				char *src = strndup((const char*)lib->start, (lib->end-lib->start));
 				m = module_load_text(p->m, src);
 				free(src);
-				do_db_load(m);
+
+				if (m != p->m)
+					do_db_load(m);
+
 				return;
 			}
 

@@ -1,11 +1,11 @@
 :- module(auth, [
 	adduser/2, deluser/1, login/5, logout/1, checkin/3,
-	listusers/1, dumpusers/0,
 	setuser_email/2, getuser_email/2,
 	setuser_nick/2, getuser_nick/2,
 	setuser_locked/2, getuser_locked/2,
 	setuser_pass/2,
-	session_set/3, session_get/3
+	session_set/3, session_get/3,
+	listusers/1
 	]).
 
 % These are our database records:
@@ -127,18 +127,5 @@ session_get(SessId, Name, Value) :-
 	atomic_concat('user$', Name, ActualName),
 	dict:get(D, ActualName, Value).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 listusers(L) :-
 	findall(User, auth_user(User, _), L).
-
-dumpuser([]).
-dumpuser([User|Tail]) :-
-	writeln(User),
-	dumpuser(Tail).
-
-dumpusers :-
-	listusers(L),
-	dumpuser(L).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
