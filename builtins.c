@@ -7645,6 +7645,12 @@ static int fn_predicate_property_2(query *q)
 			return 1;
 	}
 
+	if (h && (h->flags&FLAG_RULE_PERSIST)) {
+		make_literal(&tmp, find_in_pool("persist"));
+		if (unify(q, p2, p2_ctx, &tmp, q->st.curr_frame))
+			return 1;
+	}
+
 	if (h && (h->flags&FLAG_RULE_VOLATILE)) {
 		make_literal(&tmp, find_in_pool("volatile"));
 		if (unify(q, p2, p2_ctx, &tmp, q->st.curr_frame))

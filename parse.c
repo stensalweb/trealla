@@ -60,6 +60,7 @@ static struct op_table g_ops[] =
 	{",", OP_XFY, 1000},
 
 	{"op", OP_FX, 1150},
+	{"public", OP_FX, 1150},
 	{"dynamic", OP_FX, 1150},
 	{"persist", OP_FX, 1150},
 	{"volatile", OP_FX, 1150},
@@ -67,9 +68,6 @@ static struct op_table g_ops[] =
 	{"set_prolog_flag", OP_FX, 1150},
 	{"module", OP_FX, 1150},
 	{"use_module", OP_FX, 1150},
-	{"public", OP_FX, 1150},
-	{"export", OP_FX, 1150},
-	{"import", OP_FX, 1150},
 
 	{"\\+", OP_FY, 900},
 	{"is", OP_XFX, 700},
@@ -795,8 +793,6 @@ static void consultall(parser *p, cell *l)
 		module_load_file(p->m, GET_STR(c));
 		l = c + c->nbr_cells;
 	}
-
-	p->skip = 1;
 }
 
 static int module_load_text(module *m, const char *src);
@@ -810,6 +806,7 @@ static void directives(parser *p, term *t)
 
 	if (is_list(t->cells) && p->command) {
 		consultall(p, t->cells);
+		p->skip = 1;
 		return;
 	}
 
@@ -821,12 +818,12 @@ static void directives(parser *p, term *t)
 	if (!is_literal(c))
 		return;
 
-	const char *dir = GET_STR(c);
+	const char *dirname = GET_STR(c);
 
-	if (!strcmp(dir, "initialization"))
+	if (!strcmp(dirname, "initialization"))
 		return;
 
-	if (!strcmp(dir, "include") && (c->arity == 1)) {
+	if (!strcmp(dirname, "include") && (c->arity == 1)) {
 		cell *p1 = c + 1;
 		if (!is_literal(p1)) return;
 		const char *name = GET_STR(p1);
@@ -836,7 +833,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "module") && (c->arity == 2)) {
+	if (!strcmp(dirname, "module") && (c->arity == 2)) {
 		cell *p1 = c + 1, *p2 = c + 2;
 		if (!is_literal(p1)) return;
 		const char *name = GET_STR(p1);
@@ -871,7 +868,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if ((!strcmp(dir, "use_module") || !strcmp(dir, "ensure_loaded")) && (c->arity == 1)) {
+	if ((!strcmp(dirname, "use_module") || !strcmp(dirname, "ensure_loaded")) && (c->arity == 1)) {
 		cell *p1 = c + 1;
 		if (!is_literal(p1)) return;
 		const char *name = GET_STR(p1);
@@ -901,7 +898,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "dynamic") && (c->arity >= 1)) {
+	if (!strcmp(dirname, "dynamic") && (c->arity >= 1)) {
 		cell *p1 = c + 1;
 
 		while (!is_end(p1)) {
@@ -920,7 +917,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "persist") && (c->arity >= 1)) {
+	if (!strcmp(dirname, "persist") && (c->arity >= 1)) {
 		cell *p1 = c + 1;
 
 		while (!is_end(p1)) {
@@ -939,7 +936,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "volatile") && (c->arity >= 1)) {
+	if (!strcmp(dirname, "volatile") && (c->arity >= 1)) {
 		cell *p1 = c + 1;
 
 		while (!is_end(p1)) {
@@ -958,7 +955,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "set_prolog_flag") && (c->arity == 2)) {
+	if (!strcmp(dirname, "set_prolog_flag") && (c->arity == 2)) {
 		cell *p1 = c + 1, *p2 = c + 2;
 		if (!is_literal(p1)) return;
 		if (!is_literal(p2)) return;
@@ -1002,7 +999,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if (!strcmp(dir, "op") && (c->arity == 3)) {
+	if (!strcmp(dirname, "op") && (c->arity == 3)) {
 		cell *p1 = c + 1, *p2 = c + 2, *p3 = c + 3;
 
 		if (!is_integer(p1) || !is_literal(p2) || !is_atom(p3)) {
@@ -1086,10 +1083,10 @@ int parser_xref(parser *p, term *t, rule *parent)
 				c->flags |= FLAG_TAIL;
 			}
 
-			if (h && (m != p->m) && !(h->flags&FLAG_RULE_PUBLIC)) {
-				fprintf(stderr, "Error: not a public method\n");
-				p->error = 1;
-				return 0;
+			if (h && (m != p->m) && !(h->flags&FLAG_RULE_PUBLIC) && strcmp(GET_STR(c), "dynamic")) {
+				fprintf(stderr, "Error: not a public method %s/%u\n", GET_STR(c), c->arity);
+				//p->error = 1;
+				break;
 			}
 
 			if (h) {
