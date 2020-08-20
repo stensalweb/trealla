@@ -68,6 +68,7 @@ static struct op_table g_ops[] =
 	{"set_prolog_flag", OP_FX, 1150},
 	{"module", OP_FX, 1150},
 	{"use_module", OP_FX, 1150},
+	{"ensure_loaded", OP_FX, 1150},
 
 	{"\\+", OP_FY, 900},
 	{"is", OP_XFX, 700},
