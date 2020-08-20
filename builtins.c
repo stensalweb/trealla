@@ -3926,6 +3926,8 @@ enum log_type { LOG_ASSERTA=1, LOG_ASSERTZ=2, LOG_ERASE=3 };
 static void db_log(query *q, clause *r, enum log_type l)
 {
 	static int s_quiet = 5;
+	int save = q->quoted;
+	q->quoted = 2;
 
 	switch(l) {
 		case LOG_ASSERTA:
@@ -3964,6 +3966,8 @@ static void db_log(query *q, clause *r, enum log_type l)
 			break;
 		}
 	}
+
+	q->quoted = save;
 }
 
 static int fn_iso_retract_1(query *q)
@@ -3990,9 +3994,9 @@ static int fn_iso_retractall_1(query *q)
 	return 1;
 }
 
-static int abolish_from_db(query *q, module *m, cell *c)
+static int abolish_from_db(query *q, cell *c)
 {
-	rule *h = find_match(m, c);
+	rule *h = find_match(q->m, c);
 
 	if (h) {
 		if (!(h->flags&FLAG_RULE_DYNAMIC)) {
@@ -4001,9 +4005,9 @@ static int abolish_from_db(query *q, module *m, cell *c)
 		}
 
 		for (clause *r = h->head ; r; r = r->next) {
-			retract_from_db(m, r);
+			retract_from_db(q->m, r);
 
-			if (!m->loading && r->t.persist)
+			if (!q->m->loading && r->t.persist)
 				db_log(q, r, LOG_ERASE);
 		}
 
@@ -4046,7 +4050,7 @@ static int fn_iso_abolish_1(query *q)
 	cell tmp = {{0}};
 	tmp.val_str = p1_name->val_str;
 	tmp.arity = p1_arity->val_int;
-	int ok = abolish_from_db(q, q->m, &tmp);
+	int ok = abolish_from_db(q, &tmp);
 	return ok;
 }
 
@@ -5149,9 +5153,12 @@ static int fn_sys_assertz_2(query *q)
 	return do_assertz_2(q);
 }
 
-static void save_db(FILE *fp, query *q, int dq)
+static void save_db(FILE *fp, query *q, module *m, int dq)
 {
-	for (rule *h = q->m->head; h; h = h->next) {
+	int save = q->quoted;
+	q->quoted = 2;
+
+	for (rule *h = m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5163,17 +5170,22 @@ static void save_db(FILE *fp, query *q, int dq)
 			fprintf(fp, ".\n");
 		}
 	}
+
+	q->quoted = save;
 }
 
 static int fn_listing_0(query *q)
 {
-	save_db(stdout, q, q->m->dq);
+	module *m = q->st.curr_clause ? q->st.curr_clause->m : q->m;
+	save_db(stdout, q, m, m->dq);
 	return 1;
 }
 
 static void save_name(FILE *fp, query *q, idx_t name, unsigned arity)
 {
-	for (rule *h = q->m->head; h; h = h->next) {
+	module *m = q->st.curr_clause->m;
+
+	for (rule *h = m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5187,7 +5199,7 @@ static void save_name(FILE *fp, query *q, idx_t name, unsigned arity)
 			if (r->t.deleted)
 				continue;
 
-			write_term(q, fp, r->t.cells, 0, q->m->dq, 0, 0, 0);
+			write_term(q, fp, r->t.cells, 0, m->dq, 0, 0, 0);
 			fprintf(fp, ".\n");
 		}
 	}
@@ -7859,10 +7871,12 @@ static void restore_db(module *m, FILE *fp)
 
 static int fn_db_load_0(query *q)
 {
+	module *m = q->st.curr_clause->m;
+
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
+	snprintf(filename, sizeof(filename), "%s.db", m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
 	struct stat st;
 
 	if (!stat(filename2, &st) && !stat(filename, &st))
@@ -7872,28 +7886,29 @@ static int fn_db_load_0(query *q)
 
 	if (!stat(filename, &st)) {
 		FILE *fp = fopen(filename, "rb");
-		restore_db(q->m, fp);
+		restore_db(m, fp);
 		fclose(fp);
 	}
 
-	q->m->fp = fopen(filename, "ab");
+	m->fp = fopen(filename, "ab");
 	return 1;
 }
 
 static int fn_db_save_0(query *q)
 {
-	fsync(fileno(q->m->fp));
-	fclose(q->m->fp);
+	module *m = q->st.curr_clause->m;
+	fsync(fileno(m->fp));
+	fclose(m->fp);
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
+	snprintf(filename, sizeof(filename), "%s.db", m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
 	FILE *fp = fopen(filename2, "wb");
-	save_db(stdout, q, q->m->dq);
+	save_db(stdout, q, m, m->dq);
 	fclose(fp);
 	remove(filename);
 	rename(filename2, filename);
-	q->m->fp = fopen(filename, "ab");
+	m->fp = fopen(filename, "ab");
 	return 0;
 }
 

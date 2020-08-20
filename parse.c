@@ -546,7 +546,6 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 	if (h->flags&FLAG_RULE_PERSIST)
 		r->t.persist = 1;
 
-	//printf("*** here: mod = %s\n", m->name);
 	return r;
 }
 

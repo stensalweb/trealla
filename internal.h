@@ -196,6 +196,7 @@ typedef struct {
 
 typedef struct {
 	cell *curr_cell;
+	module *m;
 	idx_t prev_frame, env, overflow;
 	uint8_t any_choices, nbr_vars, nbr_slots;
 } frame;

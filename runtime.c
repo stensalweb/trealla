@@ -323,8 +323,9 @@ static int check_slots(const query *q, frame *g, term *t)
 
 static void commit_me(query *q, term *t)
 {
-	q->m = q->st.curr_clause->m;
 	frame *g = GET_FRAME(q->st.curr_frame);
+	g->m = q->m;
+	q->m = q->st.curr_clause->m;
 	int last_match = (!q->st.curr_clause->next && !q->st.iter) || t->first_cut;
 	int recursive = last_match && (q->st.curr_cell->flags&FLAG_TAILREC);
 	int tco = recursive && !g->any_choices && check_slots(q, g, t);
@@ -419,6 +420,7 @@ static int resume_frame(query *q)
 	cell *curr_cell = g->curr_cell;
 	g = GET_FRAME(q->st.curr_frame=g->prev_frame);
 	q->st.curr_cell = curr_cell;
+	q->m = g->m;
 	return 1;
 }
 
