@@ -351,6 +351,6 @@ slow *testindex1b* result) Also 2 internal stacks needed to be boosted.
 Yap came from *git clone https://github.com/vscosta/yap-6.3* and needs
 *cmake* installed.
 
-Scryer came from *cargo install scryer-prolog* (it takes a long time).
-Is it a release build? Neither chess nor puzzle compile. Also
+Scryer came from *cargo install scryer-prolog* (it takes a long time)
+and needs *m4* installed. Neither chess nor puzzle compile. Also
 *testindex* needs between/3 so won't load, is it in a module?
