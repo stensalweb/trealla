@@ -370,3 +370,4 @@ int uuid_from_string(const char *s, uuid *u);
 void uuid_gen(uuid *u);
 uint64_t gettimeofday_usec(void);
 void clear_term(term *t);
+void do_db_load(module *m);

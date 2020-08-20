@@ -878,17 +878,23 @@ static void directives(parser *p, term *t)
 			p1 = p1 + 1;
 			if (!is_literal(p1)) return;
 			name = GET_STR(p1);
+			module *m;
 
-			if (find_module(name))
+			if ((m = find_module(name)) != NULL) {
+				if (!m->fp)
+					do_db_load(m);
+
 				return;
+			}
 
 			for (library *lib = g_libs; lib->name; lib++) {
 				if (strcmp(lib->name, name))
 					continue;
 
-				char *src = strndup((const char*)lib->start, (lib->end - lib->start));
+				char *src = strndup((const char*)lib->start, (lib->end-lib->start));
 				module_load_text(p->m, src);
 				free(src);
+				do_db_load(p->m);
 				return;
 			}
 
@@ -896,6 +902,10 @@ static void directives(parser *p, term *t)
 		}
 
 		module_load_file(p->m, name);
+
+		if (!p->m->fp)
+			do_db_load(p->m);
+
 		return;
 	}
 
@@ -2738,17 +2748,14 @@ prolog *pl_create()
 
 	pl->m = create_module("user");
 	pl->m->filename = strdup("~/.tpl_user");
-	library *lib = g_libs;
 
-	while (lib->name) {
+	for (library *lib = g_libs; lib->name; lib++) {
 		if (!strcmp(lib->name, "apply") || !strcmp(lib->name, "dict") ||
 			!strcmp(lib->name, "http") || !strcmp(lib->name, "lists")) {
-			char *src = strndup((const char*)lib->start, (lib->end - lib->start));
+			char *src = strndup((const char*)lib->start, (lib->end-lib->start));
 			module_load_text(pl->m, src);
 			free(src);
 		}
-
-		lib++;
 	}
 
 	if (isatty(0)) {

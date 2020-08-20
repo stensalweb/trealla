@@ -159,7 +159,6 @@ test18b :- assertz(f18(123),_), clause(f18(_),_,_).
 :-use_module(library(auth)).
 
 test40 :-
-	auth:init,
 	auth:adduser(user1,pass1),
 	auth:adduser(user2,pass2),
 	auth:dumpusers,

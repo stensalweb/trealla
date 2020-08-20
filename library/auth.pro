@@ -1,5 +1,4 @@
 :- module(auth, [
-	init/0,
 	adduser/2, deluser/1, login/5, logout/1, checkin/3,
 	listusers/1, dumpusers/0,
 	setuser_email/2, getuser_email/2,
@@ -13,9 +12,6 @@
 
 :- dynamic auth_session/2.
 :- persist auth_user/2.
-
-init :-
-	db_load.
 
 adduser(User, Pass) :-
 	rand(Salt),

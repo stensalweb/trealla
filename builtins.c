@@ -7868,15 +7868,15 @@ static void restore_db(module *m, FILE *fp)
 	destroy_parser(p);
 }
 
-static int fn_db_load_0(query *q)
+void do_db_load(module *m)
 {
-	if (!q->m->use_persist)
-		return 1;
+	if (!m->use_persist)
+		return;
 
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
+	snprintf(filename, sizeof(filename), "%s.db", m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
 	struct stat st;
 
 	if (!stat(filename2, &st) && !stat(filename, &st))
@@ -7886,11 +7886,16 @@ static int fn_db_load_0(query *q)
 
 	if (!stat(filename, &st)) {
 		FILE *fp = fopen(filename, "rb");
-		restore_db(q->m, fp);
+		restore_db(m, fp);
 		fclose(fp);
 	}
 
-	q->m->fp = fopen(filename, "ab");
+	m->fp = fopen(filename, "ab");
+}
+
+static int fn_db_load_0(query *q)
+{
+	do_db_load(q->m);
 	return 1;
 }
 
