@@ -1802,13 +1802,13 @@ static int get_token(parser *p, int last_op)
 
 		p->srcptr = p->save_line;
 		src = p->srcptr;
+	}
 
-		while (isspace(*src)) {
-			if (*src == '\n')
-				p->line_nbr++;
+	while (isspace(*src)) {
+		if (*src == '\n')
+			p->line_nbr++;
 
-			src++;
-		}
+		src++;
 	}
 
 	if (!*src) {
