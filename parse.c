@@ -2413,7 +2413,7 @@ static module *module_load_text(module *m, const char *src)
 	}
 
 	destroy_parser(p);
-	return p->m;
+	return m;
 }
 
 int module_load_fp(module *m, FILE *fp)
