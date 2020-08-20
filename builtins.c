@@ -5275,9 +5275,19 @@ static int fn_delay_1(query *q)
 
 static int fn_now_0(query *q)
 {
-	int_t msecs = gettimeofday_usec() / 1000;
+	int_t secs = gettimeofday_usec() / 1000 / 1000;
 	q->accum.val_type = TYPE_INT;
-	q->accum.val_int = msecs;
+	q->accum.val_int = secs;
+	return 1;
+}
+
+static int fn_now_1(query *q)
+{
+	GET_FIRST_ARG(p1,var);
+	int_t secs = gettimeofday_usec() / 1000 / 1000;
+	cell tmp;
+	make_int(&tmp, secs);
+	set_var(q, p1, p1_ctx, &tmp, q->st.curr_frame);
 	return 1;
 }
 
@@ -8125,6 +8135,7 @@ static const struct builtins g_other_funcs[] =
 	{"sleep", 1, fn_sleep_1, "+integer"},
 	{"delay", 1, fn_delay_1, "+integer"},
 	{"now", 0, fn_now_0, NULL},
+	{"now", 1, fn_now_1, "now(-integer)"},
 	{"get_time", 1, fn_get_time_1, "-var"},
 	{"random", 1, fn_random_1, "?integer"},
 	{"rand", 1, fn_rand_1, "?integer"},
