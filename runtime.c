@@ -323,6 +323,7 @@ static int check_slots(const query *q, frame *g, term *t)
 
 static void commit_me(query *q, term *t)
 {
+	q->m = q->st.curr_clause->m;
 	frame *g = GET_FRAME(q->st.curr_frame);
 	int last_match = (!q->st.curr_clause->next && !q->st.iter) || t->first_cut;
 	int recursive = last_match && (q->st.curr_cell->flags&FLAG_TAILREC);

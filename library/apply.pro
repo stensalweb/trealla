@@ -1,5 +1,3 @@
-:- module(apply, [maplist/2, maplist/3, maplist/4]).
-
 maplist(_,[]).
 maplist(P,[X1|X1s]) :- call(P,X1), maplist(P,X1s).
 

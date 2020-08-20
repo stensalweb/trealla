@@ -3923,7 +3923,7 @@ static int fn_iso_clause_2(query *q)
 
 enum log_type { LOG_ASSERTA=1, LOG_ASSERTZ=2, LOG_ERASE=3 };
 
-static void db_log(query *q, module *m, clause *r, enum log_type l)
+static void db_log(query *q, clause *r, enum log_type l)
 {
 	static int s_quiet = 5;
 
@@ -3935,7 +3935,7 @@ static void db_log(query *q, module *m, clause *r, enum log_type l)
 			write_term_to_buf(q, dst, len+1, r->t.cells, 1, 0, 0, 0, 0);
 			char tmpbuf2[80];
 			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
-			fprintf(m->fp, "a_(%s,'%s').\n", dst, tmpbuf2);
+			fprintf(q->m->fp, "a_(%s,'%s').\n", dst, tmpbuf2);
 			free(dst);
 			break;
 		}
@@ -3946,7 +3946,7 @@ static void db_log(query *q, module *m, clause *r, enum log_type l)
 			write_term_to_buf(q, dst, len+1, r->t.cells, 1, 0, 0, 0, 0);
 			char tmpbuf2[80];
 			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
-			fprintf(m->fp, "z_(%s,'%s').\n", dst, tmpbuf2);
+			fprintf(q->m->fp, "z_(%s,'%s').\n", dst, tmpbuf2);
 			free(dst);
 			break;
 		}
@@ -3956,7 +3956,7 @@ static void db_log(query *q, module *m, clause *r, enum log_type l)
 			uuid_to_string(&r->u, tmpbuf2, sizeof(tmpbuf2));
 			int len = snprintf(tmpbuf, sizeof(tmpbuf), "e_('%s').\n", tmpbuf2);
 
-			if (fwrite(tmpbuf, len, 1, m->fp) <= 0) {
+			if (fwrite(tmpbuf, len, 1, q->m->fp) <= 0) {
 				if (s_quiet-- > 0)
 					fprintf(stderr, "Error: db_log write error '%s'\n", strerror(errno));
 			}
@@ -3973,12 +3973,11 @@ static int fn_iso_retract_1(query *q)
 	if (!do_match(q, p1))
 		return 0;
 
-	module *m = q->st.curr_clause->m;
-	clause *r = retract_from_db(m, q->st.curr_clause);
+	clause *r = retract_from_db(q->m, q->st.curr_clause);
 	if (!r) return 0;
 
-	if (!m->loading && r->t.persist)
-		db_log(q, m, r, LOG_ERASE);
+	if (!q->m->loading && r->t.persist)
+		db_log(q, r, LOG_ERASE);
 
 	return 1;
 }
@@ -4005,7 +4004,7 @@ static int abolish_from_db(query *q, module *m, cell *c)
 			retract_from_db(m, r);
 
 			if (!m->loading && r->t.persist)
-				db_log(q, m, r, LOG_ERASE);
+				db_log(q, r, LOG_ERASE);
 		}
 
 		h->flags = 0;
@@ -4047,8 +4046,7 @@ static int fn_iso_abolish_1(query *q)
 	cell tmp = {{0}};
 	tmp.val_str = p1_name->val_str;
 	tmp.arity = p1_arity->val_int;
-	module *m = q->st.curr_clause->m;
-	int ok = abolish_from_db(q, m, &tmp);
+	int ok = abolish_from_db(q, q->m, &tmp);
 	return ok;
 }
 
@@ -4064,15 +4062,14 @@ static int fn_iso_asserta_1(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
-	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	clause *r = asserta_to_db(m, p->t, 0);
+	clause *r = asserta_to_db(q->m, p->t, 0);
 	if (!r) return 0;
 
-	if (!m->loading && r->t.persist)
-		db_log(q, m, r, LOG_ASSERTA);
+	if (!q->m->loading && r->t.persist)
+		db_log(q, r, LOG_ASSERTA);
 
 	return 1;
 }
@@ -4089,15 +4086,14 @@ static int fn_iso_assertz_1(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
-	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	clause *r = assertz_to_db(m, p->t, 0);
+	clause *r = assertz_to_db(q->m, p->t, 0);
 	if (!r) return 0;
 
-	if (!m->loading && r->t.persist)
-		db_log(q, m, r, LOG_ASSERTZ);
+	if (!q->m->loading && r->t.persist)
+		db_log(q, r, LOG_ASSERTZ);
 
 	return 1;
 }
@@ -4999,12 +4995,11 @@ static int fn_erase_1(query *q)
 	GET_FIRST_ARG(p1,atom);
 	uuid u;
 	uuid_from_string(GET_STR(p1), &u);
-	module *m = q->st.curr_clause->m;
-	clause *r = erase_from_db(m, &u);
+	clause *r = erase_from_db(q->m, &u);
 	if (!r) return 0;
 
-	if (!m->loading && r->t.persist)
-		db_log(q, m, r, LOG_ERASE);
+	if (!q->m->loading && r->t.persist)
+		db_log(q, r, LOG_ERASE);
 
 	return 1;
 }
@@ -5067,11 +5062,10 @@ static int do_asserta_2(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
-	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	clause *r = asserta_to_db(m, p->t, 0);
+	clause *r = asserta_to_db(q->m, p->t, 0);
 	if (!r) return 0;
 
 	if (!is_var(p2)) {
@@ -5085,8 +5079,8 @@ static int do_asserta_2(query *q)
 		set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
 	}
 
-	if (!m->loading && r->t.persist)
-		db_log(q, m, r, LOG_ASSERTA);
+	if (!q->m->loading && r->t.persist)
+		db_log(q, r, LOG_ASSERTA);
 
 	return 1;
 }
@@ -5118,11 +5112,10 @@ static int do_assertz_2(query *q)
 		p->t->nbr_cells = nbr_cells;
 	}
 
-	module *m = q->st.curr_clause->m;
 	copy_cells(p->t->cells, tmp, nbr_cells);
 	p->t->cidx = nbr_cells;
 	parser_assign_vars(p);
-	clause *r = assertz_to_db(m, p->t, 0);
+	clause *r = assertz_to_db(q->m, p->t, 0);
 	if (!r) return 0;
 
 	if (!is_var(p2)) {
@@ -5136,8 +5129,8 @@ static int do_assertz_2(query *q)
 		set_var(q, p2, p2_ctx, &tmp2, q->st.curr_frame);
 	}
 
-	if (!m->loading && r->t.persist)
-		db_log(q, m, r, LOG_ASSERTZ);
+	if (!q->m->loading && r->t.persist)
+		db_log(q, r, LOG_ASSERTZ);
 
 	return 1;
 }
@@ -5156,9 +5149,9 @@ static int fn_sys_assertz_2(query *q)
 	return do_assertz_2(q);
 }
 
-static void save_db(FILE *fp, query *q, module *m, int dq)
+static void save_db(FILE *fp, query *q, int dq)
 {
-	for (rule *h = m->head; h; h = h->next) {
+	for (rule *h = q->m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5174,16 +5167,13 @@ static void save_db(FILE *fp, query *q, module *m, int dq)
 
 static int fn_listing_0(query *q)
 {
-	module *m = q->st.curr_clause ? q->st.curr_clause->m : q->m;
-	save_db(stdout, q, m, m->dq);
+	save_db(stdout, q, q->m->dq);
 	return 1;
 }
 
 static void save_name(FILE *fp, query *q, idx_t name, unsigned arity)
 {
-	module *m = q->st.curr_clause->m;
-
-	for (rule *h = m->head; h; h = h->next) {
+	for (rule *h = q->m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
@@ -5197,7 +5187,7 @@ static void save_name(FILE *fp, query *q, idx_t name, unsigned arity)
 			if (r->t.deleted)
 				continue;
 
-			write_term(q, fp, r->t.cells, 0, m->dq, 0, 0, 0);
+			write_term(q, fp, r->t.cells, 0, q->m->dq, 0, 0, 0);
 			fprintf(fp, ".\n");
 		}
 	}
@@ -7869,12 +7859,10 @@ static void restore_db(module *m, FILE *fp)
 
 static int fn_db_load_0(query *q)
 {
-	module *m = q->st.curr_clause->m;
-
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", m->name);
+	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
 	struct stat st;
 
 	if (!stat(filename2, &st) && !stat(filename, &st))
@@ -7884,29 +7872,28 @@ static int fn_db_load_0(query *q)
 
 	if (!stat(filename, &st)) {
 		FILE *fp = fopen(filename, "rb");
-		restore_db(m, fp);
+		restore_db(q->m, fp);
 		fclose(fp);
 	}
 
-	m->fp = fopen(filename, "ab");
+	q->m->fp = fopen(filename, "ab");
 	return 1;
 }
 
 static int fn_db_save_0(query *q)
 {
-	module *m = q->st.curr_clause->m;
-	fsync(fileno(m->fp));
-	fclose(m->fp);
+	fsync(fileno(q->m->fp));
+	fclose(q->m->fp);
 	char filename[1024];
-	snprintf(filename, sizeof(filename), "%s.db", m->name);
+	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
 	char filename2[1024];
-	snprintf(filename2, sizeof(filename2), "%s.TMP", m->name);
+	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
 	FILE *fp = fopen(filename2, "wb");
-	save_db(stdout, q, m, m->dq);
+	save_db(stdout, q, q->m->dq);
 	fclose(fp);
 	remove(filename);
 	rename(filename2, filename);
-	m->fp = fopen(filename, "ab");
+	q->m->fp = fopen(filename, "ab");
 	return 0;
 }
 
