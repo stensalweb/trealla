@@ -869,7 +869,7 @@ static void directives(parser *p, term *t)
 		return;
 	}
 
-	if ((!strcmp(dirname, "use_module") || !strcmp(dirname, "ensure_loaded")) && (c->arity == 1)) {
+	if (!strcmp(dirname, "use_module") && (c->arity == 1)) {
 		cell *p1 = c + 1;
 		if (!is_literal(p1)) return;
 		const char *name = GET_STR(p1);
@@ -895,6 +895,14 @@ static void directives(parser *p, term *t)
 			return;
 		}
 
+		module_load_file(p->m, name);
+		return;
+	}
+
+	if (!strcmp(dirname, "ensure_loaded") && (c->arity == 1)) {
+		cell *p1 = c + 1;
+		if (!is_literal(p1)) return;
+		const char *name = GET_STR(p1);
 		module_load_file(p->m, name);
 		return;
 	}
