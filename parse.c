@@ -61,6 +61,7 @@ static struct op_table g_ops[] =
 
 	{"op", OP_FX, 1150},
 	{"dynamic", OP_FX, 1150},
+	{"persist", OP_FX, 1150},
 	{"volatile", OP_FX, 1150},
 	{"initialization", OP_FX, 1150},
 	{"set_prolog_flag", OP_FX, 1150},
