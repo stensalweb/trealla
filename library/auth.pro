@@ -11,8 +11,9 @@
 
 % These are our database records:
 
-:- persist auth_user/2.
 :- dynamic auth_session/2.
+:- dynamic auth_user/2.
+:- persist auth_user/2.
 
 init :-
 	db_load.
