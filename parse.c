@@ -222,7 +222,7 @@ module *find_module(const char *name)
 	return NULL;
 }
 
-cell *get_head(module *m, cell *c)
+cell *get_head(cell *c)
 {
 	if (!is_literal(c))
 		return NULL;
@@ -233,7 +233,7 @@ cell *get_head(module *m, cell *c)
 	return c + 1;
 }
 
-cell *get_body(module *m, cell *c)
+cell *get_body(cell *c)
 {
 	if (!is_literal(c))
 		return NULL;
@@ -435,7 +435,7 @@ static int compkey(const void *ptr1, const void *ptr2)
 
 clause *asserta_to_db(module *m, term *t, int consulting)
 {
-	cell *c = get_head(m, t->cells);
+	cell *c = get_head(t->cells);
 
 	if (!c) {
 		fprintf(stderr, "Error: not a fact or clause\n");
@@ -477,7 +477,7 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 		h->tail = r;
 
 	if ((h->flags&FLAG_RULE_DYNAMIC) && (c->arity > 0)) {
-		cell *c = get_head(m, r->t.cells);
+		cell *c = get_head(r->t.cells);
 		sl_set(h->index, c, r);
 	}
 
@@ -492,7 +492,7 @@ clause *asserta_to_db(module *m, term *t, int consulting)
 
 clause *assertz_to_db(module *m, term *t, int consulting)
 {
-	cell *c = get_head(m, t->cells);
+	cell *c = get_head(t->cells);
 
 	if (!c) {
 		fprintf(stderr, "Error: no fact or clause head\n");
@@ -536,7 +536,7 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 		h->head = r;
 
 	if ((h->flags&FLAG_RULE_DYNAMIC) && (c->arity > 0)) {
-		cell *c = get_head(m, r->t.cells);
+		cell *c = get_head(r->t.cells);
 		sl_app(h->index, c, r);
 	}
 
@@ -546,6 +546,7 @@ clause *assertz_to_db(module *m, term *t, int consulting)
 	if (h->flags&FLAG_RULE_PERSIST)
 		r->t.persist = 1;
 
+	printf("*** here: mod = %s\n", m->name);
 	return r;
 }
 
@@ -1114,7 +1115,7 @@ static void parser_xref_db(parser *p)
 
 static void check_first_cut(parser *p)
 {
-	cell *c = get_body(p->m, p->t->cells);
+	cell *c = get_body(p->t->cells);
 	int cut_only = 1;
 
 	if (!c)

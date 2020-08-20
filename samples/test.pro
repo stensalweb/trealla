@@ -162,7 +162,7 @@ test40 :-
 	auth:init,
 	auth:adduser(user1,pass1),
 	auth:adduser(user1,pass1),
-	dumpusers,
+	auth:dumpusers,
 	true.
 
 task50(T) :-

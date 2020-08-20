@@ -343,7 +343,7 @@ static void commit_me(query *q, term *t)
 	if (t->cut_only)
 		q->st.curr_cell = NULL;
 	else
-		q->st.curr_cell = get_body(q->m, t->cells);
+		q->st.curr_cell = get_body(t->cells);
 
 	q->nv_mask = 0;
 }
@@ -632,7 +632,7 @@ static void next_key(query *q)
 
 static int do_match2(query *q, cell *curr_cell)
 {
-	cell *head = get_head(q->m, curr_cell);
+	cell *head = get_head(curr_cell);
 	rule *h = find_match(q->m, head);
 
 	if (!h)
@@ -684,7 +684,7 @@ int do_match(query *q, cell *curr_cell)
 			continue;
 
 		term *t = &q->st.curr_clause->t;
-		cell *head = get_head(q->m, t->cells);
+		cell *head = get_head(t->cells);
 		try_me(q, t->nbr_vars);
 		q->tot_matches++;
 
@@ -739,7 +739,7 @@ static int match(query *q)
 			continue;
 
 		term *t = &q->st.curr_clause->t;
-		cell *head = get_head(q->m, t->cells);
+		cell *head = get_head(t->cells);
 		try_me(q, t->nbr_vars);
 		q->tot_matches++;
 		q->no_tco = 0;

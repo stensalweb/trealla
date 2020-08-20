@@ -3911,7 +3911,7 @@ static int fn_iso_clause_2(query *q)
 		return 0;
 
 	term *t = &q->st.curr_clause->t;
-	cell *body = get_body(q->m, t->cells);
+	cell *body = get_body(t->cells);
 
 	if (body)
 		return unify(q, p2, p2_ctx, body, q->st.curr_frame);
@@ -5044,7 +5044,7 @@ static int fn_clause_3(query *q)
 		t = &q->st.curr_clause->t;
 	}
 
-	cell *body = get_body(q->m, t->cells);
+	cell *body = get_body(t->cells);
 
 	if (body)
 		return unify(q, p2, p2_ctx, body, q->st.curr_frame);
