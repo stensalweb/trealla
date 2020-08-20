@@ -7870,8 +7870,8 @@ static void restore_db(module *m, FILE *fp)
 
 static int fn_db_load_0(query *q)
 {
-	//if (!q->m->use_persist)
-	//	return 1;
+	if (!q->m->use_persist)
+		return 1;
 
 	char filename[1024];
 	snprintf(filename, sizeof(filename), "%s.db", q->m->name);
