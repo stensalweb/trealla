@@ -732,7 +732,7 @@ static int match(query *q)
 				}
 			}
 
-			if ((key->arity > 1)  && !all_vars) {
+			if (!all_vars) {
 				q->st.iter = sl_findkey(h->index, key);
 				next_key(q);
 			} else {
