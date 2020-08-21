@@ -31,4 +31,5 @@ test2b :-
 test99 :-
 	auth:listusers(L),
 	writeln(L),
-	maplist(writeln,L).
+	%maplist(writeln,L),
+	true.

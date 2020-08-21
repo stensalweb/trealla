@@ -561,6 +561,9 @@ clause *find_in_db(module *m, uuid *ref)
 {
 	for (rule *h = m->head; h; h = h->next) {
 		for (clause *r = h->head ; r; r = r->next) {
+			if (r->t.deleted)
+				continue;
+
 			if (!memcmp(&r->u, ref, sizeof(uuid)))
 				return r;
 		}
