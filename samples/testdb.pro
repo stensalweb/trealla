@@ -28,5 +28,4 @@ test99 :-
 	auth:save,
 	auth:listusers(L),
 	writeln(L),
-	%maplist(writeln,L),
 	true.
