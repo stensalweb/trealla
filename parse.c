@@ -397,8 +397,6 @@ static int compkey(const void *ptr1, const void *ptr2)
 			return strcmp(GET_STR(p1), GET_STR(p2));
 		else if (is_var(p2))
 			return 0;
-	} else if (is_var(p1)) {
-		return 0;
 	} else if (is_structure(p1)) {
 		if (is_structure(p2)) {
 			if (p1->arity < p2->arity)
@@ -428,7 +426,9 @@ static int compkey(const void *ptr1, const void *ptr2)
 			return 0;
 		} else if (is_var(p2))
 			return 0;
-	} else
+	} else if (is_var(p1))
+		return 0;
+	 else
 		return 0;
 
 	return 0;
