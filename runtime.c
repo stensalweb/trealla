@@ -723,8 +723,16 @@ static int match(query *q)
 
 		if (h->index) {
 			cell *key = deep_clone_term_on_heap(q, q->st.curr_cell, q->st.curr_frame);
+			int all_vars = 1, arity = key->arity;
 
-			if (key->arity > 1) {
+			for (cell *c = key + 1; arity--; c += c->nbr_cells) {
+				if (!is_var(c)) {
+					all_vars = 0;
+					break;
+				}
+			}
+
+			if ((key->arity > 1)  && !all_vars) {
 				q->st.iter = sl_findkey(h->index, key);
 				next_key(q);
 			} else {
