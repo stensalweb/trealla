@@ -1,3 +1,6 @@
+:- dynamic(f/1).
+:- dynamic(g/2).
+
 test1a :-
 	write('Load...'), nl,
 	between(1,1000000,I),
