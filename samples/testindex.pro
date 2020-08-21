@@ -1,4 +1,4 @@
-%:-dynamic(f/1,g/2).
+:- dynamic f/1,g/2.
 
 test1a :-
 	write('Load...'), nl,
@@ -89,3 +89,13 @@ test5 :-
 		fail.
 test5 :-
 	write('Done... '), write(1000000), write(' items'), nl, true.
+
+test6 :-
+	assertz(ff(3)),
+	assertz(ff(1)),
+	assertz(ff(2)),
+	ff(X),
+	write(X), nl,
+	fail.
+
+test6.
