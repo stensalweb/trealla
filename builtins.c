@@ -5157,7 +5157,7 @@ static int fn_sys_assertz_2(query *q)
 static void save_db(FILE *fp, query *q, int dq)
 {
 	int save = q->quoted;
-	q->quoted = 2;
+	q->quoted = 1;
 
 	for (rule *h = q->m->head; h; h = h->next) {
 		if (h->flags&FLAG_RULE_PREBUILT)
