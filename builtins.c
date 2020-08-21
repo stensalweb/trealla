@@ -5163,6 +5163,9 @@ static void save_db(FILE *fp, query *q, int dq)
 		if (h->flags&FLAG_RULE_PREBUILT)
 			continue;
 
+		if (!(h->flags&FLAG_RULE_PERSIST))
+			continue;
+
 		for (clause *r = h->head; r; r = r->next) {
 			if (r->t.deleted)
 				continue;
@@ -7909,12 +7912,12 @@ static int fn_db_save_0(query *q)
 	char filename2[1024];
 	snprintf(filename2, sizeof(filename2), "%s.TMP", q->m->name);
 	FILE *fp = fopen(filename2, "wb");
-	save_db(stdout, q, q->m->dq);
+	save_db(q->m->fp, q, q->m->dq);
 	fclose(fp);
 	remove(filename);
 	rename(filename2, filename);
 	q->m->fp = fopen(filename, "ab");
-	return 0;
+	return 1;
 }
 
 static int fn_module_1(query *q)

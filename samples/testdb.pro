@@ -25,6 +25,7 @@ test2b :-
 	writeln('OOPS not exists').
 
 test99 :-
+	auth:save,
 	auth:listusers(L),
 	writeln(L),
 	%maplist(writeln,L),

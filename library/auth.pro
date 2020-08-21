@@ -5,7 +5,7 @@
 	setuser_locked/2, getuser_locked/2,
 	setuser_pass/2,
 	session_set/3, session_get/3,
-	listusers/1
+	listusers/1, save/0
 	]).
 
 % These are our database records:
@@ -126,3 +126,6 @@ session_get(SessId, Name, Value) :-
 
 listusers(L) :-
 	findall(User, auth_user(User, _), L).
+
+save :-
+	db_save.
