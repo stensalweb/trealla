@@ -414,9 +414,10 @@ static cell take_blob(query *q, const char *s, size_t n)
 
 	if (n < MAX_SMALL_STRING) {
 		make_smalln(&tmp, s, n);
-	} else
-		tmp = *alloc_string(q, strndup(s, n), 1);
+		return tmp;
+	}
 
+	tmp = *alloc_string(q, strndup(s, n), 1);
 	tmp.flags |= FLAG_SLICE;
 	tmp.nbytes = n;
 	return tmp;
@@ -7496,8 +7497,8 @@ static int fn_atomic_concat_3(query *q)
 		char tmpbuf1[256], tmpbuf2[256];
 
 		if (is_atom(p1)) {
-			src1 = GET_STR(p1);
 			len1 = LEN_STR(p1);
+			src1 = GET_STR(p1);
 		} else if (is_integer(p1)) {
 			sprintf(tmpbuf1, "%lld", (long long)p1->val_int);
 			len1 = strlen(tmpbuf1);
@@ -7513,8 +7514,8 @@ static int fn_atomic_concat_3(query *q)
 		}
 
 		if (is_atom(p2)) {
-			src2 = GET_STR(p2);
 			len2 = LEN_STR(p2);
+			src2 = GET_STR(p2);
 		} else if (is_integer(p2)) {
 			sprintf(tmpbuf2, "%lld", (long long)p2->val_int);
 			len2 = strlen(tmpbuf2);
@@ -8230,7 +8231,7 @@ static const struct builtins g_other_funcs[] =
 
 	{"a_", 2, fn_sys_asserta_2, "+term,+ref"},
 	{"z_", 2, fn_sys_assertz_2, "+term,+ref"},
-	{"e_", 2, fn_erase_1, "+ref"},
+	{"e_", 1, fn_erase_1, "+ref"},
 
 	{"db_load", 0, fn_db_load_0, NULL},
 	{"db_save", 0, fn_db_save_0, NULL},

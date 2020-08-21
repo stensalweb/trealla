@@ -2412,6 +2412,7 @@ static module *module_load_text(module *m, const char *src)
 		p->m->quiet = save;
 	}
 
+	m = p->m;
 	destroy_parser(p);
 	return m;
 }

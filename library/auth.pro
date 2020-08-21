@@ -14,6 +14,7 @@
 :- persist auth_user/2.
 
 adduser(User, Pass) :-
+	\+ auth_user(User, _),
 	rand(Salt),
 	atomic_concat(Salt, Pass, Str),
 	sha256(Str, Hash),
@@ -24,13 +25,10 @@ adduser(User, Pass) :-
 	dict:set(D1, modified, Now, D2),
 	dict:set(D2, salt, Salt, D3),
 	dict:set(D3, hash, Hash, D4),
-	\+ auth_user(User,_),
 	assertz(auth_user(User, D4)).
 
 deluser(User) :-
-	retract(auth_user(User, D)),
-	dict:set(D, deleted, 1, D1),
-	assertz(auth_user(User, D1)).
+	retract(auth_user(User, _)).
 
 login(User, Pass, SessId, Keep, Expires) :-
 	auth_user(User, D),
@@ -39,7 +37,6 @@ login(User, Pass, SessId, Keep, Expires) :-
 	atomic_concat(Salt, Pass, Str),
 	sha256(Str, Hash2),
 	Hash == Hash2,
-	dict:get(D, deleted, 0),
 	dict:get(D, locked, 0),
 	uuid(Uuid),
 	sha256(Uuid, SessId),
