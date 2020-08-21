@@ -23,7 +23,7 @@ test2a :-
 
 test2b :-
 	auth:deluser(user2a),
-	auth:adduser(userbb),
+	auth:deluser(user2b),
 	true.
 test2b :-
 	writeln('OOPS not exists').
