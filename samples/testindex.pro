@@ -1,5 +1,3 @@
-:- dynamic f/1,g/2.
-
 test1a :-
 	write('Load...'), nl,
 	between(1,1000000,I),
@@ -92,10 +90,9 @@ test5 :-
 
 test6 :-
 	assertz(ff(3)),
-	assertz(ff(1)),
 	assertz(ff(2)),
+	assertz(ff(1)),
 	ff(X),
 	write(X), nl,
 	fail.
-
 test6.

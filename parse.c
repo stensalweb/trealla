@@ -428,7 +428,7 @@ static int compkey(const void *ptr1, const void *ptr2)
 			return 0;
 	} else if (is_var(p1))
 		return 0;
-	 else
+	else
 		return 0;
 
 	return 0;
